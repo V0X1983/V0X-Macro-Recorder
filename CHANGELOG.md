@@ -2,6 +2,12 @@
 
 ## Non publié
 
+_(rien pour l'instant)_
+
+## 0.1.0 - 2026-09-23
+
+Première publication : [v0.1.0](https://github.com/V0X1983/V0X-Macro-Recorder/releases/tag/v0.1.0) sur le dépôt [V0X1983/V0X-Macro-Recorder](https://github.com/V0X1983/V0X-Macro-Recorder).
+
 - Étape 9 : packaging et distribution — `installer\build.ps1` (publish self-contained win-x64, archive portable, compilation Inno Setup si disponible), installeur `V0XMacroRecorder-Setup-<version>.exe` (français, sans droits administrateur par défaut — installation par utilisateur avec option pour tous les utilisateurs, raccourci Bureau optionnel, suppression de toutes les tâches planifiées de macros et de la clé de démarrage à la désinstallation), mise à jour automatique via GitHub Releases (vérification manuelle depuis Paramètres, téléchargement HTTPS avec vérification de l'empreinte SHA-256, réinstallation silencieuse puis relance). Dépôt `V0X1983/V0X-Macro-Recorder` créé et release `v0.1.0` publiée ; correctif d'un bug trouvé par ce test réel de bout en bout (le fichier téléchargé restait ouvert au moment de sa suppression en cas d'empreinte invalide, provoquant une exception Windows au lieu du message d'erreur attendu).
 - Étape 8 : détection de session verrouillée/UAC Secure Desktop (la lecture s'arrête avant de commencer plutôt que d'agir à l'aveugle), avertissement d'écart de résolution/DPI (ou écran débranché) depuis l'enregistrement, commande « Saisie protégée » pour les mots de passe (demandée à la lecture ou chiffrée avec DPAPI, jamais en clair), fichiers macro protégés par mot de passe (Fichier > Enregistrer sous protégé…, chiffrement AES-GCM avec détection intégrée de falsification), documentation anti-triche étendue.
 - Étape 7 : fenêtre Paramètres (thème clair/sombre/système, raccourcis globaux d'enregistrement et d'arrêt d'urgence configurables, comportement à la lecture — réduire la fenêtre/son de fin, dossier des macros par défaut, démarrage avec Windows et réduction dans la zone de notification déplacés ici depuis le menu Outils), barre d'état (nombre de commandes, durée estimée, état), guide de démarrage avec génération d'une macro d'exemple et tutoriel affiché au premier lancement, correction d'un contraste insuffisant des messages d'avertissement en thème clair.
