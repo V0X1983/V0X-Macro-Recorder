@@ -128,8 +128,13 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
 
         if (!string.IsNullOrWhiteSpace(release.InstallerSha256))
         {
-            await using var check = File.OpenRead(path);
-            var hash = Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(check, cancellationToken));
+            string hash;
+            await using (var check = File.OpenRead(path))
+            {
+                hash = Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(check, cancellationToken));
+            }
+
+            // Le flux doit être refermé avant de supprimer le fichier (verrou Windows), d'où la portée explicite ci-dessus.
             if (!hash.Equals(release.InstallerSha256, StringComparison.OrdinalIgnoreCase))
             {
                 File.Delete(path);
