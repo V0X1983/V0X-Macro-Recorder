@@ -1,0 +1,51 @@
+<Window x:Class="V0XMacroRecorder.App.Views.MacroHotkeysWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:V0XMacroRecorder.App.ViewModels"
+        Style="{StaticResource {x:Type Window}}"
+        Title="Raccourcis de macros" Icon="../Resources/app.ico"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+
+    <StackPanel Margin="20">
+        <TextBlock Text="Lancer une macro depuis n'importe où : chaque ligne associe un fichier macro à un raccourci global."
+                   TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <ItemsControl ItemsSource="{Binding Rows}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:MacroHotkeyRowViewModel}">
+                    <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,8">
+                        <StackPanel>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Supprimer" Margin="8,0,0,0"
+                                        Command="{Binding DataContext.RemoveRowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" />
+                                <TextBlock Text="{Binding FileName}" ToolTip="{Binding MacroFilePath}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <CheckBox Content="Ctrl" IsChecked="{Binding Ctrl}" Margin="0,0,10,0" />
+                                <CheckBox Content="Alt" IsChecked="{Binding Alt}" Margin="0,0,10,0" />
+                                <CheckBox Content="Maj" IsChecked="{Binding Shift}" Margin="0,0,10,0" />
+                                <CheckBox Content="Win" IsChecked="{Binding Win}" Margin="0,0,10,0" />
+                                <TextBox Tag="MacroHotkeyCapture" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="Arrow"
+                                         Text="{Binding KeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="200" />
+                            </StackPanel>
+                            <TextBlock Text="Raccourci déjà utilisé par une autre application." Foreground="{DynamicResource BrushWarning}"
+                                       Margin="0,4,0,0" Visibility="{Binding HasConflict, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button Content="Ajouter une macro…" Command="{Binding AddMacroCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+
+        <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Margin="0,12,0,0"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Enregistrer" IsDefault="True" MinWidth="90" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click" />
+            <Button Content="Fermer" IsCancel="True" MinWidth="90" Margin="8,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

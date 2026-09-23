@@ -1,0 +1,18 @@
+<Window x:Class="V0XMacroRecorder.App.Views.RegionCaptureOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Capturer une région à l'écran"
+        WindowStyle="None" AllowsTransparency="True" Background="#33000000"
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
+        Cursor="Cross"
+        MouseDown="Window_MouseDown" MouseMove="Window_MouseMove" MouseUp="Window_MouseUp"
+        KeyDown="Window_KeyDown" Loaded="Window_Loaded">
+    <Grid>
+        <Border x:Name="SelectionBorder" BorderBrush="#FF3399FF" BorderThickness="2" Background="#333399FF"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" />
+        <Border Background="#CC202020" CornerRadius="6" Padding="12"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20">
+            <TextBlock Text="Glissez pour sélectionner une zone — Échap pour annuler" Foreground="White" FontSize="13" />
+        </Border>
+    </Grid>
+</Window>

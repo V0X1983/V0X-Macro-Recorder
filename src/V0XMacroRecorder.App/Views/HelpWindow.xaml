@@ -1,0 +1,40 @@
+<Window x:Class="V0XMacroRecorder.App.Views.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource {x:Type Window}}"
+        Title="Guide de démarrage" Icon="../Resources/app.ico"
+        Width="560" Height="620" WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Content="Créer une macro d'exemple…" Click="CreateExampleButton_Click" />
+            <Button Content="Fermer" IsCancel="True" IsDefault="True" MinWidth="90" Margin="8,0,0,0" Click="CloseButton_Click" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Prise en main de V0X Macro Recorder" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" />
+
+                <TextBlock Text="Enregistrer" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="Cliquez ENREGISTRER (ou Ctrl+Alt+R depuis n'importe où) : un bandeau rouge apparaît, vos actions souris/clavier deviennent des lignes dans la grille. Cliquez de nouveau pour arrêter. Le menu déroulant du bouton règle ce qui est capturé (souris, clavier, délais, décompte de démarrage…)." />
+
+                <TextBlock Text="Lire" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="Cliquez LECTURE pour rejouer la macro. Ctrl+Alt+S (configurable dans Paramètres) arrête immédiatement et relâche toute touche restée enfoncée, où que vous soyez. Le menu déroulant règle la vitesse, les répétitions et le comportement si une fenêtre visée est introuvable." />
+
+                <TextBlock Text="Commandes avancées" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="La barre d'icônes à gauche (et le menu Insérer) ajoute des commandes qui ne s'enregistrent pas toutes seules : Attente, Programme, Fenêtre, Presse-papiers, Pixel, Image, Son, Message, ainsi que le contrôle de flux (Si/Boucle/Variable/Étiquette) pour construire une logique sans coder." />
+
+                <TextBlock Text="Script C#" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="Pour les cas non couverts par les commandes ci-dessus, l'icône « Script C# » ouvre un éditeur avec coloration syntaxique. Une API limitée est exposée : Mouse, Keyboard, Window, Clipboard, Vars, Log. N'ouvrez et n'exécutez un script que si vous faites confiance à sa source : un script exécute du code réel sur votre ordinateur." />
+
+                <TextBlock Text="Raccourcis de macros et planificateur" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="Outils > Raccourcis de macros… associe un raccourci global à une macro, pour la lancer depuis n'importe où sans ouvrir l'application. Outils > Planifier une macro… la lance à une heure, un jour, à intervalle régulier ou à l'ouverture de session, via le Planificateur de tâches Windows." />
+
+                <TextBlock Text="Sécurité" FontWeight="SemiBold" Margin="0,10,0,4" />
+                <TextBlock TextWrapping="Wrap" Text="V0X Macro Recorder simule de vraies actions souris/clavier : testez toujours une macro sur une cible que vous maîtrisez avant de l'automatiser. Les jeux protégés par un anti-triche peuvent bloquer ou sanctionner l'injection d'entrées — vous en êtes seul responsable. La lecture s'arrête d'elle-même si votre session est verrouillée ou qu'une invite Windows (UAC) est affichée, plutôt que d'agir à l'aveugle. Pour un mot de passe, utilisez la commande « Saisie protégée » (jamais en clair dans le fichier) plutôt qu'une commande Texte ordinaire ; « Fichier > Enregistrer sous (protégé par mot de passe)… » chiffre la macro entière." />
+
+                <TextBlock Text="Pour essayer tout de suite, créez la macro d'exemple ci-dessous puis ouvrez-la." Margin="0,14,0,0" TextWrapping="Wrap" FontStyle="Italic" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

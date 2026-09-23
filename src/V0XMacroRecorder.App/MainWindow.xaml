@@ -1,0 +1,432 @@
+<Window x:Class="V0XMacroRecorder.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:V0XMacroRecorder.App.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
+        Style="{StaticResource {x:Type Window}}"
+        Title="{Binding Document.WindowTitle}" Icon="Resources/app.ico" Height="720" Width="1000"
+        MinHeight="420" MinWidth="720"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <DataTemplate x:Key="ChoiceItemTemplate">
+            <TextBlock Text="{Binding Label}" />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding Document.NewCommand}" />
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding Document.OpenCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Document.SaveCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding Document.SaveAsCommand}" />
+        <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Document.UndoCommand}" />
+        <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Document.RedoCommand}" />
+        <KeyBinding Key="R" Modifiers="Ctrl+Alt" Command="{Binding Document.ToggleRecordingCommand}" />
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Barre de menus. Les entrées grisées seront activées par les étapes suivantes de la roadmap. -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_Fichier">
+                <MenuItem Header="_Nouveau" InputGestureText="Ctrl+N" Command="{Binding Document.NewCommand}" />
+                <MenuItem Header="_Ouvrir…" InputGestureText="Ctrl+O" Command="{Binding Document.OpenCommand}" />
+                <MenuItem Header="Fichiers _récents" ItemsSource="{Binding Document.RecentFiles}"
+                          IsEnabled="{Binding Document.HasRecentFiles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Setter Property="Header" Value="{Binding Title}" />
+                            <Setter Property="Command" Value="{Binding Command}" />
+                            <Setter Property="CommandParameter" Value="{Binding Path}" />
+                            <Setter Property="ToolTip" Value="{Binding Path}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="_Enregistrer" InputGestureText="Ctrl+S" Command="{Binding Document.SaveCommand}" />
+                <MenuItem Header="Enregistrer _sous…" InputGestureText="Ctrl+Maj+S" Command="{Binding Document.SaveAsCommand}" />
+                <MenuItem Header="Enregistrer sous (_protégé par mot de passe)…" Command="{Binding Document.SaveAsProtectedCommand}" />
+                <Separator />
+                <MenuItem Header="_Quitter" InputGestureText="Alt+F4" Command="{Binding ExitCommand}" />
+            </MenuItem>
+
+            <MenuItem Header="É_dition">
+                <MenuItem Header="_Annuler" InputGestureText="Ctrl+Z" Command="{Binding Document.UndoCommand}" />
+                <MenuItem Header="_Rétablir" InputGestureText="Ctrl+Y" Command="{Binding Document.RedoCommand}" />
+                <Separator />
+                <MenuItem Header="Co_uper" InputGestureText="Ctrl+X" Command="{Binding Document.CutCommand}" />
+                <MenuItem Header="_Copier" InputGestureText="Ctrl+C" Command="{Binding Document.CopyCommand}" />
+                <MenuItem Header="C_oller" InputGestureText="Ctrl+V" Command="{Binding Document.PasteCommand}" />
+                <MenuItem Header="_Supprimer" InputGestureText="Suppr" Command="{Binding Document.DeleteCommand}" />
+                <Separator />
+                <MenuItem Header="_Modifier…" InputGestureText="Entrée" Command="{Binding Document.EditSelectedCommand}" />
+                <MenuItem Header="Tout s_électionner" InputGestureText="Ctrl+A"
+                          Command="ApplicationCommands.SelectAll" CommandTarget="{Binding ElementName=CommandGrid}" />
+            </MenuItem>
+
+            <MenuItem Header="_Affichage">
+                <MenuItem Header="_Thème">
+                    <MenuItem Header="Sombre" Command="{Binding SetThemeCommand}" CommandParameter="Dark"
+                              IsChecked="{Binding IsDarkTheme, Mode=OneWay}" />
+                    <MenuItem Header="Clair" Command="{Binding SetThemeCommand}" CommandParameter="Light"
+                              IsChecked="{Binding IsLightTheme, Mode=OneWay}" />
+                    <MenuItem Header="Système" Command="{Binding SetThemeCommand}" CommandParameter="System"
+                              IsChecked="{Binding IsSystemTheme, Mode=OneWay}" />
+                </MenuItem>
+            </MenuItem>
+
+            <!-- Chaque type de commande de la barre d'icônes est aussi proposé ici. -->
+            <MenuItem Header="_Insérer" ItemsSource="{Binding CommandPalette}">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                        <Setter Property="Header" Value="{Binding Title}" />
+                        <Setter Property="Command" Value="{Binding Command}" />
+                        <Setter Property="CommandParameter" Value="{Binding Key}" />
+                        <Setter Property="IsEnabled" Value="{Binding IsAvailable}" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
+
+            <MenuItem Header="A_ctions">
+                <MenuItem Header="{Binding Document.RecordButtonLabel}" InputGestureText="Ctrl+Alt+R"
+                          Command="{Binding Document.ToggleRecordingCommand}" />
+                <MenuItem Header="{Binding Document.PlayButtonLabel}"
+                          Command="{Binding Document.TogglePlaybackCommand}" />
+                <MenuItem Header="{Binding Document.PauseButtonLabel}" Command="{Binding Document.TogglePauseCommand}"
+                          Visibility="{Binding Document.IsPlaying, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <MenuItem Header="_Arrêt d'urgence" InputGestureText="Ctrl+Alt+S" IsEnabled="{Binding Document.IsPlaying}"
+                          Click="EmergencyStopMenuItem_Click" />
+            </MenuItem>
+
+            <MenuItem Header="O_utils">
+                <MenuItem Header="Relancer en _administrateur" Command="{Binding Document.RelaunchElevatedCommand}"
+                          IsEnabled="{Binding Document.IsElevated, Converter={StaticResource InverseBooleanConverter}}" />
+                <Separator />
+                <MenuItem Header="_Raccourcis de macros…" Command="{Binding ManageMacroHotkeysCommand}" />
+                <MenuItem Header="Planifier une _macro…" Command="{Binding ManageMacroScheduleCommand}" />
+                <Separator />
+                <MenuItem Header="_Paramètres…" Command="{Binding OpenSettingsCommand}" />
+            </MenuItem>
+
+            <MenuItem Header="Ai_de">
+                <MenuItem Header="_Guide de démarrage…" Command="{Binding ShowHelpCommand}" />
+                <MenuItem Header="À _propos de V0X Macro Recorder" Click="AboutMenuItem_Click" />
+            </MenuItem>
+        </Menu>
+
+        <!-- Barre d'outils : ENREGISTRER, LECTURE, Paramètres. -->
+        <Border Grid.Row="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="0,0,0,1" Padding="6,4">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding Document.ToggleRecordingCommand}"
+                        ToolTip="Démarrer/arrêter l'enregistrement (Ctrl+Alt+R)"
+                        AutomationProperties.Name="{Binding Document.RecordButtonLabel}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="22" Height="22">
+                            <Ellipse Stroke="{DynamicResource BrushRecord}" StrokeThickness="2.5" />
+                            <Ellipse Width="10" Height="10" Fill="{DynamicResource BrushRecord}" />
+                        </Grid>
+                        <TextBlock Text="{Binding Document.RecordButtonLabel}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="RecordOptionsButton" Style="{StaticResource ToolbarDropDownButtonStyle}"
+                        ToolTip="Options d'enregistrement" AutomationProperties.Name="Options d'enregistrement"
+                        Click="RecordOptionsButton_Click" />
+                <Popup x:Name="RecordOptionsPopup" PlacementTarget="{Binding ElementName=RecordOptionsButton}"
+                       Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                    <Popup.DataContext>
+                        <Binding Path="PlacementTarget.DataContext" RelativeSource="{RelativeSource Self}" />
+                    </Popup.DataContext>
+                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushBorder}"
+                            BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,2,0,0" MinWidth="320">
+                        <StackPanel DataContext="{Binding RecordingOptions}">
+                            <TextBlock Text="Options d'enregistrement" FontWeight="SemiBold" Margin="0,0,0,10" />
+
+                            <DockPanel Margin="0,0,0,8">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CaptureMouse}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Souris" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CaptureKeyboard}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Clavier" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding RecordDelays}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Enregistrer les délais réels" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding RecordTypedTextAsString}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Regrouper le texte tapé en une commande" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </DockPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding DontRecordPasswordFields}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Ne pas enregistrer les champs mot de passe" Margin="8,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </DockPanel>
+
+                            <TextBlock Text="Échantillonnage souris" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,4" />
+                            <ComboBox ItemsSource="{x:Static vm:RecordingOptionsViewModel.MouseSamplingChoices}"
+                                      ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                      SelectedValuePath="Value" SelectedValue="{Binding MouseSampling}" />
+
+                            <TextBlock Text="Repère des coordonnées" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox ItemsSource="{x:Static vm:RecordingOptionsViewModel.CoordinateModeChoices}"
+                                      ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                      SelectedValuePath="Value" SelectedValue="{Binding CoordinateMode}" />
+
+                            <TextBlock Text="Minuteur de démarrage" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox ItemsSource="{x:Static vm:RecordingOptionsViewModel.CountdownChoices}"
+                                      ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                      SelectedValuePath="Value" SelectedValue="{Binding StartCountdownSeconds}" />
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding Document.TogglePlaybackCommand}"
+                        ToolTip="Lire/arrêter la lecture (Ctrl+Alt+S pour l'arrêt d'urgence)"
+                        AutomationProperties.Name="{Binding Document.PlayButtonLabel}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="22" Height="22">
+                            <Ellipse Fill="{DynamicResource BrushAccent}" />
+                            <Path Data="M0,0 L8,5 L0,10 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Margin="3,0,0,0" Visibility="{Binding Document.IsPlaying, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+                            <Path Data="M0,0 L0,10 M5,0 L5,10" Stroke="White" StrokeThickness="2"
+                                  Visibility="{Binding Document.IsPlaying, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </Grid>
+                        <TextBlock Text="{Binding Document.PlayButtonLabel}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding Document.TogglePauseCommand}"
+                        Content="{Binding Document.PauseButtonLabel}" FontWeight="Bold" Margin="0,0,0,0"
+                        Visibility="{Binding Document.IsPlaying, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        ToolTip="Mettre en pause / reprendre la lecture" />
+                <Button x:Name="PlayOptionsButton" Style="{StaticResource ToolbarDropDownButtonStyle}"
+                        ToolTip="Options de lecture" AutomationProperties.Name="Options de lecture"
+                        Click="PlayOptionsButton_Click" />
+                <Popup x:Name="PlayOptionsPopup" PlacementTarget="{Binding ElementName=PlayOptionsButton}"
+                       Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                    <Popup.DataContext>
+                        <Binding Path="PlacementTarget.DataContext" RelativeSource="{RelativeSource Self}" />
+                    </Popup.DataContext>
+                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushBorder}"
+                            BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,2,0,0" MinWidth="320">
+                        <StackPanel DataContext="{Binding Document.PlaybackOptions}">
+                            <TextBlock Text="Options de lecture" FontWeight="SemiBold" Margin="0,0,0,10" />
+
+                            <TextBlock Text="Vitesse" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,4" />
+                            <Slider Minimum="0.1" Maximum="10" Value="{Binding SpeedMultiplier}" TickFrequency="0.5"
+                                    IsEnabled="{Binding NoDelay, Converter={StaticResource InverseBooleanConverter}}" />
+                            <TextBlock Text="{Binding SpeedMultiplier, StringFormat='{}{0:0.0}×'}" Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" />
+
+                            <DockPanel Margin="0,8,0,8">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding NoDelay}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Sans délai (aussi vite que possible)" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <TextBlock Text="Répétitions" Style="{StaticResource FieldLabelStyle}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding RepeatCount, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding InfiniteLoop, Converter={StaticResource InverseBooleanConverter}}" />
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding InfiniteLoop}" />
+                                    <TextBlock Text="En boucle" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Délai entre répétitions (ms)" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding DelayBetweenRepeatsMs, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <DockPanel Margin="0,8,0,0">
+                                <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StepMode}" DockPanel.Dock="Left" />
+                                <TextBlock Text="Lecture pas à pas" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <TextBlock Text="Fenêtre introuvable" Style="{StaticResource FieldLabelStyle}" Margin="0,8,0,4" />
+                            <ComboBox ItemsSource="{x:Static vm:PlaybackOptionsViewModel.WindowNotFoundChoices}"
+                                      ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                      SelectedValuePath="Value" SelectedValue="{Binding WindowNotFoundAction}" />
+
+                            <TextBlock Text="Délai d'attente de la fenêtre (ms)" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox Text="{Binding WaitForWindowTimeoutMs, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <Border Width="1" Margin="2,4,8,4" Background="{DynamicResource BrushBorder}" />
+
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding OpenSettingsCommand}"
+                        ToolTip="Paramètres">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="20"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="Paramètres" FontSize="14" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Bandeau d'enregistrement : toujours visible pendant la capture, jamais masquable (transparence assumée). -->
+        <Border Grid.Row="2" Background="{DynamicResource BrushRecord}" Padding="12,7"
+                Visibility="{Binding Document.IsRecording, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Ellipse Width="10" Height="10" Fill="White" VerticalAlignment="Center" />
+                <TextBlock Margin="8,0,0,0" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"
+                           Text="{Binding Document.CountdownSeconds, Converter={StaticResource CountdownBannerTextConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Bandeau de lecture : indique la lecture en cours/pause et le dernier avertissement (fenêtre introuvable…). -->
+        <Border Grid.Row="2" Background="{DynamicResource BrushAccent}" Padding="12,7"
+                Visibility="{Binding Document.IsPlaying, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Ellipse Width="10" Height="10" Fill="#FF0B1410" VerticalAlignment="Center" />
+                <TextBlock Margin="8,0,0,0" FontWeight="SemiBold" Foreground="#FF0B1410" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Lecture en cours — Ctrl+Alt+S pour l'arrêt d'urgence." />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Document.IsPaused}" Value="True">
+                                    <Setter Property="Text" Value="En pause — cliquez sur REPRENDRE pour continuer." />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Margin="16,0,0,0" FontStyle="Italic" Foreground="#FF0B1410" VerticalAlignment="Center"
+                           Text="{Binding Document.PlaybackWarning}"
+                           Visibility="{Binding Document.PlaybackWarning, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Barre verticale d'icônes : un bouton par type de commande (grisé tant que le type n'est pas implémenté). -->
+            <Border Grid.Column="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushBorder}"
+                    BorderThickness="0,0,1,0" Padding="4,6">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding CommandPalette}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:CommandPaletteItem}">
+                                <StackPanel>
+                                    <Border x:Name="GroupSeparator" Height="1" Margin="4,5" Background="{DynamicResource BrushBorder}"
+                                            Visibility="Collapsed" />
+                                    <Button Style="{StaticResource SideToolButtonStyle}" Content="{Binding Glyph}"
+                                            ToolTip="{Binding Title}" AutomationProperties.Name="{Binding Title}"
+                                            IsEnabled="{Binding IsAvailable}"
+                                            Command="{Binding Command}" CommandParameter="{Binding Key}" />
+                                </StackPanel>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding StartsGroup}" Value="True">
+                                        <Setter TargetName="GroupSeparator" Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Liste des commandes de la macro. -->
+            <Grid Grid.Column="1" Background="{DynamicResource BrushSurface}">
+                <DataGrid x:Name="CommandGrid" ItemsSource="{Binding Document.Rows}" IsReadOnly="True"
+                          SelectionMode="Extended" SelectionUnit="FullRow" AllowDrop="True"
+                          CanUserSortColumns="False" CanUserReorderColumns="False"
+                          SelectionChanged="CommandGrid_SelectionChanged"
+                          PreviewMouseLeftButtonDown="CommandGrid_PreviewMouseLeftButtonDown"
+                          PreviewMouseMove="CommandGrid_PreviewMouseMove"
+                          MouseDoubleClick="CommandGrid_MouseDoubleClick"
+                          DragOver="CommandGrid_DragOver" Drop="CommandGrid_Drop">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                            <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <Style.Triggers>
+                                <!-- Ligne en cours d'exécution pendant la lecture. -->
+                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Ajouter Sinon" Click="AddElseMenuItem_Click" />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF0B1410" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.InputBindings>
+                        <!-- Liés à la grille (et non à la fenêtre) pour prendre le pas sur les commandes natives de DataGrid. -->
+                        <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Document.CopyCommand}" />
+                        <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Document.CutCommand}" />
+                        <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding Document.PasteCommand}" />
+                        <KeyBinding Key="Delete" Command="{Binding Document.DeleteCommand}" />
+                        <KeyBinding Key="Return" Command="{Binding Document.EditSelectedCommand}" />
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Commande" Width="220">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="{Binding IndentLevel, Converter={StaticResource IndentLevelToMarginConverter}}">
+                                        <Button Content="{Binding IsCollapsed, Converter={StaticResource FoldGlyphConverter}}"
+                                                Visibility="{Binding IsBlockStart, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Style="{StaticResource FoldButtonStyle}"
+                                                Click="FoldButton_Click" />
+                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="4,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Détails" Width="*" Binding="{Binding Details}" />
+                        <DataGridTextColumn Header="Délai" Width="120" Binding="{Binding DelayText}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" MaxWidth="420"
+                            Visibility="{Binding Document.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="Aucune commande" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource BrushTextSecondary}" />
+                    <TextBlock Text="Cliquez sur ENREGISTRER pour capturer vos actions, ou ajoutez des commandes avec la barre d'icônes à gauche ou le menu Insérer."
+                               FontSize="13" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"
+                               Foreground="{DynamicResource BrushTextSecondary}" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Barre d'état (étape 7) : nombre de commandes, durée estimée, état enregistrement/lecture. -->
+        <Border Grid.Row="4" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="0,1,0,0" Padding="10,4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Document.Rows.Count, StringFormat='{}{0} commande(s)'}" />
+                <TextBlock Text="•" Margin="10,0" Opacity="0.6" />
+                <TextBlock Text="{Binding Document.EstimatedDurationText, StringFormat='Durée estimée : ~{0}'}" />
+                <TextBlock Text="•" Margin="10,0" Opacity="0.6" />
+                <TextBlock Text="{Binding Document.StatusText}" FontWeight="SemiBold" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

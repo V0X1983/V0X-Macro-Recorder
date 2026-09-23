@@ -1,0 +1,86 @@
+<Window x:Class="V0XMacroRecorder.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource {x:Type Window}}"
+        Title="Paramètres" Icon="../Resources/app.ico"
+        Width="560" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="700">
+    <StackPanel Margin="20">
+
+        <TextBlock Text="Apparence" FontWeight="Bold" Margin="0,0,0,8" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <RadioButton Content="Sombre" GroupName="Theme" Margin="0,0,16,0"
+                         Command="{Binding SetThemeCommand}" CommandParameter="Dark" IsChecked="{Binding IsDarkTheme, Mode=OneWay}" />
+            <RadioButton Content="Clair" GroupName="Theme" Margin="0,0,16,0"
+                         Command="{Binding SetThemeCommand}" CommandParameter="Light" IsChecked="{Binding IsLightTheme, Mode=OneWay}" />
+            <RadioButton Content="Système" GroupName="Theme"
+                         Command="{Binding SetThemeCommand}" CommandParameter="System" IsChecked="{Binding IsSystemTheme, Mode=OneWay}" />
+        </StackPanel>
+        <DockPanel Margin="0,8,0,0">
+            <TextBlock Text="Langue" Style="{StaticResource FieldLabelStyle}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox IsEnabled="False" SelectedIndex="0" Width="160" HorizontalAlignment="Left">
+                <ComboBoxItem Content="Français" />
+            </ComboBox>
+        </DockPanel>
+        <TextBlock Text="Multi-langue prévu pour une version future." FontSize="11" Opacity="0.7" Margin="0,2,0,0" />
+
+        <Separator Margin="0,16,0,16" />
+
+        <TextBlock Text="Raccourcis globaux" FontWeight="Bold" Margin="0,0,0,8" />
+
+        <TextBlock Text="Enregistrer / arrêter l'enregistrement" Style="{StaticResource FieldLabelStyle}" />
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+            <CheckBox Content="Ctrl" IsChecked="{Binding RecordingOptions.HotKeyCtrl}" Margin="0,0,10,0" />
+            <CheckBox Content="Alt" IsChecked="{Binding RecordingOptions.HotKeyAlt}" Margin="0,0,10,0" />
+            <CheckBox Content="Maj" IsChecked="{Binding RecordingOptions.HotKeyShift}" Margin="0,0,10,0" />
+            <CheckBox Content="Win" IsChecked="{Binding RecordingOptions.HotKeyWin}" Margin="0,0,10,0" />
+            <TextBox Tag="RecordHotkeyCapture" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="Arrow"
+                     Text="{Binding RecordingOptions.HotKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
+            <Button Content="Appliquer" Command="{Binding ApplyRecordingHotkeyCommand}" />
+        </StackPanel>
+        <TextBlock Text="{Binding RecordHotkeyStatusMessage}" Foreground="{DynamicResource BrushWarning}" Margin="0,4,0,0" TextWrapping="Wrap"
+                   Visibility="{Binding RecordHotkeyStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <TextBlock Text="Arrêt d'urgence pendant la lecture" Style="{StaticResource FieldLabelStyle}" Margin="0,14,0,0" />
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+            <CheckBox Content="Ctrl" IsChecked="{Binding EmergencyStopCtrl}" Margin="0,0,10,0" />
+            <CheckBox Content="Alt" IsChecked="{Binding EmergencyStopAlt}" Margin="0,0,10,0" />
+            <CheckBox Content="Maj" IsChecked="{Binding EmergencyStopShift}" Margin="0,0,10,0" />
+            <CheckBox Content="Win" IsChecked="{Binding EmergencyStopWin}" Margin="0,0,10,0" />
+            <TextBox Tag="EmergencyStopHotkeyCapture" IsReadOnly="True" IsReadOnlyCaretVisible="False" Cursor="Arrow"
+                     Text="{Binding EmergencyStopKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
+            <Button Content="Appliquer" Command="{Binding ApplyEmergencyStopHotkeyCommand}" />
+        </StackPanel>
+        <TextBlock Text="{Binding EmergencyStopStatusMessage}" Foreground="{DynamicResource BrushWarning}" Margin="0,4,0,0" TextWrapping="Wrap"
+                   Visibility="{Binding EmergencyStopStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <Separator Margin="0,16,0,16" />
+
+        <TextBlock Text="Lecture" FontWeight="Bold" Margin="0,0,0,8" />
+        <CheckBox Content="Réduire la fenêtre pendant la lecture" IsChecked="{Binding MinimizeWindowOnPlay}" Margin="0,0,0,6" />
+        <CheckBox Content="Jouer un son à la fin d'une lecture" IsChecked="{Binding PlayEndOfMacroSound}" />
+
+        <Separator Margin="0,16,0,16" />
+
+        <TextBlock Text="Dossier des macros par défaut" FontWeight="Bold" Margin="0,0,0,8" />
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Content="Parcourir…" Command="{Binding BrowseMacrosFolderCommand}" Margin="6,0,0,0" />
+            <TextBox Text="{Binding DefaultMacrosFolder, Mode=OneWay}" IsReadOnly="True" />
+        </DockPanel>
+
+        <Separator Margin="0,16,0,16" />
+
+        <TextBlock Text="Démarrage" FontWeight="Bold" Margin="0,0,0,8" />
+        <CheckBox Content="Démarrer avec Windows" IsChecked="{Binding StartWithWindows}" Margin="0,0,0,6" />
+        <CheckBox Content="Démarrer réduit dans la zone de notification" IsChecked="{Binding StartMinimizedToTray}"
+                  IsEnabled="{Binding ShowsStartMinimizedOption}" Margin="20,0,0,6" />
+        <CheckBox Content="Réduire dans la zone de notification en fermant la fenêtre" IsChecked="{Binding MinimizeToTrayOnClose}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Fermer" IsCancel="True" IsDefault="True" MinWidth="90" Style="{StaticResource PrimaryButtonStyle}" />
+        </StackPanel>
+    </StackPanel>
+    </ScrollViewer>
+</Window>

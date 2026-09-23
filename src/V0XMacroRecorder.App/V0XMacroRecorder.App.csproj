@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\V0XMacroRecorder.Core\V0XMacroRecorder.Core.csproj" />
+    <ProjectReference Include="..\V0XMacroRecorder.Services\V0XMacroRecorder.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources/app.ico</ApplicationIcon>
+    <AssemblyName>V0XMacroRecorder</AssemblyName>
+    <RootNamespace>V0XMacroRecorder.App</RootNamespace>
+    <Product>V0X Macro Recorder</Product>
+    <AssemblyTitle>V0X Macro Recorder</AssemblyTitle>
+    <Company>V0X</Company>
+    <Version>0.1.0</Version>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <!-- WFAC010 : WinForms voudrait piloter le DPI via ApplicationHighDpiMode, mais app.manifest (PerMonitorV2,
+         voir commentaire dedans) reste la source de vérité pour toute l'appli (WPF + le peu de WinForms utilisé
+         pour NotifyIcon) — ne jamais dupliquer/déplacer cette déclaration. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources/app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- UseWindowsForms n'est activé que pour la référence d'assembly (NotifyIcon, TrayIconService) : ses "using"
+         globaux implicites (System.Windows.Forms, System.Drawing) entrent en collision avec des types WPF de même
+         nom déjà utilisés sans qualification ailleurs (Application, MessageBox, Point, KeyEventArgs...). Retirés ici. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>
