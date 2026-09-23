@@ -72,6 +72,30 @@
 
         <Separator Margin="0,16,0,16" />
 
+        <TextBlock Text="Mise à jour" FontWeight="Bold" Margin="0,0,0,8" />
+        <TextBlock Text="Dépôt GitHub Releases vérifié (propriétaire / dépôt) :" FontSize="12"
+                   Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4" />
+        <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding UpdateCheckOwner, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="propriétaire" Margin="0,0,6,0" Padding="6,4" />
+            <TextBox Grid.Column="1" Text="{Binding UpdateCheckRepo, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="dépôt" Margin="6,0,0,0" Padding="6,4" />
+        </Grid>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Vérifier maintenant" Command="{Binding CheckForUpdatesCommand}" Padding="12,6" Margin="0,0,10,0" />
+            <Button Content="Ouvrir la version" Click="OpenReleaseButton_Click"
+                    Visibility="{Binding LatestReleaseUrl, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" Padding="12,6" />
+        </StackPanel>
+        <TextBlock Text="{Binding UpdateStatusMessage}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}"
+                   Margin="0,8,0,0" TextWrapping="Wrap"
+                   Visibility="{Binding UpdateStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <Separator Margin="0,16,0,16" />
+
         <TextBlock Text="Démarrage" FontWeight="Bold" Margin="0,0,0,8" />
         <CheckBox Content="Démarrer avec Windows" IsChecked="{Binding StartWithWindows}" Margin="0,0,0,6" />
         <CheckBox Content="Démarrer réduit dans la zone de notification" IsChecked="{Binding StartMinimizedToTray}"

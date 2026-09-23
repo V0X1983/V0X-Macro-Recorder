@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISessionLockService, Win32SessionLockService>();
         services.AddSingleton<IDisplayInfoProvider, Win32DisplayInfoProvider>();
         services.AddSingleton<IDataProtector, Win32DataProtector>();
+        services.AddSingleton<IUpdateChecker, GitHubUpdateChecker>();
 
         return services;
     }

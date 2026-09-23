@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using V0XMacroRecorder.App.Helpers;
 using V0XMacroRecorder.App.Infrastructure;
 using V0XMacroRecorder.App.ViewModels.Editors;
@@ -49,6 +50,8 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly MacroHotkeyManager _hotkeyManager;
     private readonly IMacroScheduler _scheduler;
     private readonly IDialogService _dialogs;
+    private readonly IUpdateChecker _updateChecker;
+    private readonly ILogger<MainWindowViewModel> _logger;
 
     public MainWindowViewModel(
         ISettingsService settings,
@@ -58,7 +61,9 @@ public partial class MainWindowViewModel : ObservableObject
         ISystemThemeProvider systemTheme,
         MacroHotkeyManager hotkeyManager,
         IMacroScheduler scheduler,
-        IDialogService dialogs)
+        IDialogService dialogs,
+        IUpdateChecker updateChecker,
+        ILogger<MainWindowViewModel> logger)
     {
         _settings = settings;
         _startupRegistration = startupRegistration;
@@ -66,9 +71,13 @@ public partial class MainWindowViewModel : ObservableObject
         _hotkeyManager = hotkeyManager;
         _scheduler = scheduler;
         _dialogs = dialogs;
+        _updateChecker = updateChecker;
+        _logger = logger;
         Document = document;
         RecordingOptions = recordingOptions;
         _themeSetting = settings.Current.Theme;
+        _updateCheckOwner = settings.Current.UpdateCheckOwner;
+        _updateCheckRepo = settings.Current.UpdateCheckRepo;
         _startWithWindows = settings.Current.StartWithWindows;
         _startMinimizedToTray = settings.Current.StartMinimizedToTray;
         _minimizeToTrayOnClose = settings.Current.MinimizeToTrayOnClose;
@@ -286,6 +295,112 @@ public partial class MainWindowViewModel : ObservableObject
         EmergencyStopStatusMessage = Document.ApplyEmergencyStopHotKey()
             ? "Raccourci enregistré."
             : "Ce raccourci est déjà utilisé par une autre application.";
+    }
+
+    // ---------------------------------------------------------------- Mise à jour (GitHub Releases)
+
+    [ObservableProperty]
+    private string _updateCheckOwner;
+
+    [ObservableProperty]
+    private string _updateCheckRepo;
+
+    [ObservableProperty]
+    private string? _updateStatusMessage;
+
+    [ObservableProperty]
+    private string? _latestReleaseUrl;
+
+    [ObservableProperty]
+    private bool _isCheckingForUpdates;
+
+    partial void OnUpdateCheckOwnerChanged(string value)
+    {
+        _settings.Current.UpdateCheckOwner = value;
+        _ = _settings.SaveAsync();
+    }
+
+    partial void OnUpdateCheckRepoChanged(string value)
+    {
+        _settings.Current.UpdateCheckRepo = value;
+        _ = _settings.SaveAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCheckForUpdates))]
+    private async Task CheckForUpdatesAsync()
+    {
+        IsCheckingForUpdates = true;
+        UpdateStatusMessage = "Vérification en cours...";
+        LatestReleaseUrl = null;
+
+        try
+        {
+            var result = await Task.Run(() => _updateChecker.GetLatestReleaseAsync(UpdateCheckOwner, UpdateCheckRepo));
+            UpdateStatusMessage = result.Message;
+            LatestReleaseUrl = result.ReleaseUrl;
+
+            if (!result.Success)
+            {
+                return;
+            }
+
+            var installed = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            if (!Version.TryParse(result.Version, out var latest) || installed is null || latest <= new Version(installed.Major, installed.Minor, Math.Max(installed.Build, 0)))
+            {
+                UpdateStatusMessage = $"V0X Macro Recorder est à jour (version {installed?.ToString(3)}).";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(result.InstallerUrl))
+            {
+                UpdateStatusMessage = $"La version {result.Version} est disponible, mais aucun installeur n'y est joint : utilisez « Ouvrir la version ».";
+                return;
+            }
+
+            UpdateStatusMessage = $"Version {result.Version} trouvée. Téléchargement...";
+            var progress = new Progress<double>(p => UpdateStatusMessage = $"Version {result.Version} : téléchargement {p:P0}...");
+            var installerPath = await Task.Run(() => _updateChecker.DownloadInstallerAsync(result, progress));
+
+            UpdateStatusMessage = "Installation de la mise à jour : V0X Macro Recorder va se fermer puis se relancer.";
+            LaunchInstallerAndRestart(installerPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la vérification des mises à jour.");
+            UpdateStatusMessage = $"Erreur lors de la mise à jour : {ex.Message}";
+        }
+        finally
+        {
+            IsCheckingForUpdates = false;
+        }
+    }
+
+    private bool CanCheckForUpdates() => !IsCheckingForUpdates;
+
+    partial void OnIsCheckingForUpdatesChanged(bool value) => CheckForUpdatesCommand.NotifyCanExecuteChanged();
+
+    /// <summary>
+    /// Lance l'installeur en silencieux (avec élévation UAC seulement si nécessaire, voir <c>PrivilegesRequiredOverridesAllowed</c>
+    /// dans <c>installer\V0XMacroRecorder.iss</c>) puis relance l'application, dans un PowerShell indépendant qui survit
+    /// à la fermeture de V0X Macro Recorder. Si l'élévation est refusée, l'application se relance quand même, sans mise à jour.
+    /// </summary>
+    private static void LaunchInstallerAndRestart(string installerPath)
+    {
+        static string Q(string value) => value.Replace("'", "''");
+
+        var appPath = Environment.ProcessPath ?? string.Empty;
+        var script =
+            $"try {{ Start-Process -FilePath '{Q(installerPath)}' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS' -Wait }} catch {{ }}; " +
+            $"Start-Process -FilePath '{Q(appPath)}'";
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("powershell.exe",
+            $"-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command \"{script}\"")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true
+        });
+
+        System.Windows.Application.Current.Shutdown();
     }
 
     // ---------------------------------------------------------------- Aide / Paramètres

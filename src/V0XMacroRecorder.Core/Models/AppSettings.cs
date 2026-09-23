@@ -15,9 +15,16 @@ public sealed class AppSettings
 
     public const int MaxRecentFiles = 10;
 
+    /// <summary>Dépôt GitHub Releases vérifié pour les mises à jour ; les valeurs vides retombent sur le dépôt officiel.</summary>
+    public const string DefaultUpdateOwner = "V0X1983";
+    public const string DefaultUpdateRepo = "V0X-Macro-Recorder";
+
     private int _emergencyStopHotKeyVirtualKey = 0x53; // 'S'
 
     public string Theme { get; set; } = DarkTheme;
+
+    public string UpdateCheckOwner { get; set; } = DefaultUpdateOwner;
+    public string UpdateCheckRepo { get; set; } = DefaultUpdateRepo;
 
     /// <summary>Macros ouvertes ou enregistrées récemment, la plus récente en premier.</summary>
     public List<string> RecentFiles { get; set; } = [];

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,6 +15,23 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = viewModel;
+    }
+
+    private void OpenReleaseButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_viewModel.LatestReleaseUrl))
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(_viewModel.LatestReleaseUrl) { UseShellExecute = true });
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // L'utilisateur n'a pas de navigateur associé aux adresses https ; rien à faire de plus ici.
+        }
     }
 
     /// <summary>Champs de capture de raccourci : même patron que <see cref="CommandEditorWindow"/>/<see cref="MacroHotkeysWindow"/>.</summary>
