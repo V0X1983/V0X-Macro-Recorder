@@ -67,6 +67,15 @@ public partial class RegionCaptureOverlayWindow : Window
             return; // Sélection trop petite : ignorée, l'utilisateur peut recommencer.
         }
 
+        // Masquer l'overlay (teinte de fond + rectangle de sélection) avant de capturer : sinon le modèle
+        // capturé contient la teinte de cette fenêtre elle-même (vérifié réellement : jusqu'à ~20% d'écart
+        // par canal sur les pixels du rectangle sélectionné) au lieu du vrai contenu de l'écran, et ne
+        // correspondrait alors plus jamais à l'écran réel pendant la lecture — la recherche d'image
+        // échouerait systématiquement. Hide() + une pause laissent au compositeur DWM le temps de
+        // redessiner le bureau réel avant le BitBlt.
+        Hide();
+        System.Threading.Thread.Sleep(150);
+
         var bitmap = _screenCapture.Capture(region);
         CapturedRegion = region;
         CapturedPngBase64 = Convert.ToBase64String(_codec.EncodePng(bitmap));

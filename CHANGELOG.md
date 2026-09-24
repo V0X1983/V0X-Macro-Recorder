@@ -2,6 +2,7 @@
 
 ## Non publié
 
+- Correctif : la Recherche d'image (et l'attente « image trouvée ») ne trouvait jamais son modèle — la fenêtre de capture de région restait visible (teinte semi-transparente + rectangle de sélection bleu) au moment même de la capture, donc le modèle enregistré contenait cette teinte au lieu du vrai contenu de l'écran et ne correspondait plus jamais à l'écran réel pendant la lecture. La fenêtre se masque désormais avant de capturer.
 - Correctif : la barre d'icônes verticale (types de commande) et le menu Insérer étaient vides — les 22 glyphes Segoe Fluent Icons n'avaient jamais été renseignés (chaîne vide depuis l'étape 0), défaut invisible tant que l'interface n'avait pas été vérifiée visuellement en conditions réelles. Trouvé sur un test utilisateur réel.
 
 ## 0.1.0 - 2026-09-23
