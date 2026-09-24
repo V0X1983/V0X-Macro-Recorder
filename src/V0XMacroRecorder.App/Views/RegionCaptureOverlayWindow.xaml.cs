@@ -71,9 +71,10 @@ public partial class RegionCaptureOverlayWindow : Window
         // capturé contient la teinte de cette fenêtre elle-même (vérifié réellement : jusqu'à ~20% d'écart
         // par canal sur les pixels du rectangle sélectionné) au lieu du vrai contenu de l'écran, et ne
         // correspondrait alors plus jamais à l'écran réel pendant la lecture — la recherche d'image
-        // échouerait systématiquement. Hide() + une pause laissent au compositeur DWM le temps de
-        // redessiner le bureau réel avant le BitBlt.
-        Hide();
+        // échouerait systématiquement. On utilise Visibility = Hidden (et non Hide()) : Hide() met fin à la
+        // session modale ouverte par ShowDialog(), ce qui rend impossible tout DialogResult ultérieur.
+        // Une pause laisse au compositeur DWM le temps de redessiner le bureau réel avant le BitBlt.
+        Visibility = Visibility.Hidden;
         System.Threading.Thread.Sleep(150);
 
         var bitmap = _screenCapture.Capture(region);
