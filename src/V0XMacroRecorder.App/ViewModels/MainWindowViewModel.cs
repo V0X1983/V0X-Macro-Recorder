@@ -15,33 +15,33 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private static readonly CommandPaletteItem[] PaletteDefinitions =
     [
-        new("mouse", "Souris", ""),
-        new("keyboard", "Clavier", ""),
+        new("mouse", "Souris", ""),
+        new("keyboard", "Clavier", ""),
 
-        new("wait", "Attente", "", StartsGroup: true),
-        new("program", "Lancer un programme ou un fichier", ""),
-        new("window", "Fenêtre", ""),
-        new("clipboard", "Presse-papiers", ""),
-        new("text", "Saisie de texte", ""),
-        new("secureinput", "Saisie protégée", ""),
-        new("pixel", "Couleur d'un pixel", ""),
-        new("image", "Recherche d'image", ""),
+        new("wait", "Attente", "", StartsGroup: true),
+        new("program", "Lancer un programme ou un fichier", ""),
+        new("window", "Fenêtre", ""),
+        new("clipboard", "Presse-papiers", ""),
+        new("text", "Saisie de texte", ""),
+        new("secureinput", "Saisie protégée", ""),
+        new("pixel", "Couleur d'un pixel", ""),
+        new("image", "Recherche d'image", ""),
 
-        new("url", "Ouvrir une adresse web", "", StartsGroup: true),
-        new("sound", "Jouer un son", ""),
-        new("message", "Afficher un message", ""),
-        new("script", "Script C#", ""),
+        new("url", "Ouvrir une adresse web", "", StartsGroup: true),
+        new("sound", "Jouer un son", ""),
+        new("message", "Afficher un message", ""),
+        new("script", "Script C#", ""),
 
-        new("if", "Condition (Si…)", "", StartsGroup: true),
-        new("loop", "Boucle", ""),
-        new("variable", "Variable", ""),
+        new("if", "Condition (Si…)", "", StartsGroup: true),
+        new("loop", "Boucle", ""),
+        new("variable", "Variable", ""),
 
-        new("label", "Étiquette", "", StartsGroup: true),
-        new("goto", "Aller à l'étiquette", ""),
-        new("call", "Appeler une autre macro", ""),
-        new("stop", "Arrêter la macro", ""),
-        new("pause", "Pause", ""),
-        new("comment", "Commentaire", ""),
+        new("label", "Étiquette", "", StartsGroup: true),
+        new("goto", "Aller à l'étiquette", ""),
+        new("call", "Appeler une autre macro", ""),
+        new("stop", "Arrêter la macro", ""),
+        new("pause", "Pause", ""),
+        new("comment", "Commentaire", ""),
     ];
 
     private readonly ISettingsService _settings;

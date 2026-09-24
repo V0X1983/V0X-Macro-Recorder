@@ -2,7 +2,7 @@
 
 ## Non publié
 
-_(rien pour l'instant)_
+- Correctif : la barre d'icônes verticale (types de commande) et le menu Insérer étaient vides — les 22 glyphes Segoe Fluent Icons n'avaient jamais été renseignés (chaîne vide depuis l'étape 0), défaut invisible tant que l'interface n'avait pas été vérifiée visuellement en conditions réelles. Trouvé sur un test utilisateur réel.
 
 ## 0.1.0 - 2026-09-23
 
