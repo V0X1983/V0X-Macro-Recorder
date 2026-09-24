@@ -10,7 +10,7 @@
     <Grid>
         <Border x:Name="SelectionBorder" BorderBrush="#FF3399FF" BorderThickness="2" Background="#333399FF"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" />
-        <Border Background="#CC202020" CornerRadius="6" Padding="12"
+        <Border x:Name="InstructionBanner" Background="#CC202020" CornerRadius="6" Padding="12"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20">
             <TextBlock Text="Glissez pour sélectionner une zone — Échap pour annuler" Foreground="White" FontSize="13" />
         </Border>

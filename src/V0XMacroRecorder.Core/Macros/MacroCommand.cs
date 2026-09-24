@@ -361,6 +361,9 @@ public sealed class ImageSearchCommand : MacroCommand
 
     public MouseButton ClickButton { get; set; } = MouseButton.Left;
 
+    /// <summary>Double-clic plutôt qu'un simple clic (ex. lancer une icône, qui ne se contente pas d'un clic simple) ; ignoré si <see cref="ClickIfFound"/> est faux.</summary>
+    public bool DoubleClick { get; set; }
+
     public int TimeoutMs
     {
         get => _timeoutMs;

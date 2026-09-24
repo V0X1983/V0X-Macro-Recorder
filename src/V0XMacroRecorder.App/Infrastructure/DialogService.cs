@@ -19,10 +19,12 @@ public sealed class DialogService(
     IClipboardService clipboard,
     IScriptRunner scriptRunner,
     ISettingsService settings,
-    IDataProtector dataProtector) : IDialogService
+    IDataProtector dataProtector,
+    IImageSearcher imageSearcher) : IDialogService
 {
     private const string AppTitle = "V0X Macro Recorder";
     private const string FileFilter = "Macros V0X (*.v0xmacro)|*.v0xmacro|Tous les fichiers (*.*)|*.*";
+    private const int ImageTestPollIntervalMs = 250;
 
     private static Window? Owner => Application.Current.MainWindow;
 
@@ -128,6 +130,28 @@ public sealed class DialogService(
         var globals = new ScriptGlobals(inputSimulator, windowFinder, windowController, clipboard, new VariableStore(), _ => { }, CancellationToken.None);
         var result = await scriptRunner.RunAsync(code, globals, Math.Max(1, timeoutSeconds) * 1000, CancellationToken.None).ConfigureAwait(false);
         return new ScriptTestResult(result.Success, result.ErrorMessage);
+    }
+
+    /// <summary>Recherche plein écran (comme à la lecture réelle, aucune région n'est encore exposée dans l'éditeur) ; ne clique jamais, contrairement à la lecture.</summary>
+    public async Task<ImageSearchTestResult> TestImageSearchAsync(string templatePngBase64, int tolerancePercent, int timeoutMs)
+    {
+        var template = Convert.FromBase64String(templatePngBase64);
+        var elapsed = 0;
+        while (true)
+        {
+            if (imageSearcher.Find(template, null, tolerancePercent) is { } position)
+            {
+                return new ImageSearchTestResult(true, position.X, position.Y);
+            }
+
+            if (elapsed >= timeoutMs)
+            {
+                return new ImageSearchTestResult(false, null, null);
+            }
+
+            await Task.Delay(ImageTestPollIntervalMs).ConfigureAwait(false);
+            elapsed += ImageTestPollIntervalMs;
+        }
     }
 
     public bool ConfirmOpenUntrustedMacro(string macroName)

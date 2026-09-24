@@ -202,7 +202,7 @@ public static class CommandDescriber
 
     private static string DescribeImageSearch(ImageSearchCommand img)
     {
-        var suffix = img.ClickIfFound ? " puis cliquer" : "";
+        var suffix = img.ClickIfFound ? (img.DoubleClick ? " puis double-cliquer" : " puis cliquer") : "";
         return $"Chercher l'image ({img.TemplateWidth}×{img.TemplateHeight}, tolérance {img.TolerancePercent}%){suffix}";
     }
 

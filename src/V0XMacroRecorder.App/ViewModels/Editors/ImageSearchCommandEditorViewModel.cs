@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.IO;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using V0XMacroRecorder.App.Infrastructure;
@@ -23,6 +25,9 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
     private string _templateSummary;
 
     [ObservableProperty]
+    private BitmapImage? _templatePreview;
+
+    [ObservableProperty]
     private string _toleranceText;
 
     [ObservableProperty]
@@ -33,6 +38,9 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
     private MouseButton _clickButton;
 
     [ObservableProperty]
+    private bool _doubleClick;
+
+    [ObservableProperty]
     private string _timeoutText;
 
     [ObservableProperty]
@@ -40,6 +48,12 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
 
     [ObservableProperty]
     private string? _foundYVariable;
+
+    [ObservableProperty]
+    private string? _testResultMessage;
+
+    [ObservableProperty]
+    private bool _isTesting;
 
     private int _templateWidth;
     private int _templateHeight;
@@ -53,9 +67,11 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
         _templateWidth = command.TemplateWidth;
         _templateHeight = command.TemplateHeight;
         _templateSummary = DescribeTemplate();
+        _templatePreview = DecodePreview(_templatePngBase64);
         _toleranceText = command.TolerancePercent.ToString(CultureInfo.InvariantCulture);
         _clickIfFound = command.ClickIfFound;
         _clickButton = command.ClickButton;
+        _doubleClick = command.DoubleClick;
         _timeoutText = command.TimeoutMs.ToString(CultureInfo.InvariantCulture);
         _foundXVariable = command.FoundXVariable;
         _foundYVariable = command.FoundYVariable;
@@ -78,11 +94,60 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
         _templateWidth = result.Width;
         _templateHeight = result.Height;
         TemplateSummary = DescribeTemplate();
+        TemplatePreview = DecodePreview(_templatePngBase64);
+        TestResultMessage = null;
         OnPropertyChanged(nameof(HasTemplate));
+        TestCommand.NotifyCanExecuteChanged();
     }
+
+    [RelayCommand(CanExecute = nameof(CanTest))]
+    private async Task TestAsync()
+    {
+        if (_dialogs is null)
+        {
+            return;
+        }
+
+        IsTesting = true;
+        TestResultMessage = "Recherche en cours…";
+        TestCommand.NotifyCanExecuteChanged();
+        try
+        {
+            var result = await _dialogs.TestImageSearchAsync(_templatePngBase64, IntOr(ToleranceText, 10), IntOr(TimeoutText, 10000));
+            TestResultMessage = result.Found
+                ? $"Image trouvée à ({result.X}, {result.Y})."
+                : "Image non trouvée.";
+        }
+        finally
+        {
+            IsTesting = false;
+            TestCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private bool CanTest => !IsTesting && HasTemplate;
 
     private string DescribeTemplate() =>
         _templatePngBase64.Length == 0 ? "Aucun modèle capturé" : $"Modèle capturé : {_templateWidth}×{_templateHeight}";
+
+    /// <summary>Décode le PNG en aperçu bitmap affiché dans l'éditeur ; null si aucun modèle capturé. Gelé (<see cref="Freezable.Freeze"/>) car créé hors du thread UI n'est pas garanti sans ça.</summary>
+    private static BitmapImage? DecodePreview(string templatePngBase64)
+    {
+        if (templatePngBase64.Length == 0)
+        {
+            return null;
+        }
+
+        var bytes = Convert.FromBase64String(templatePngBase64);
+        var image = new BitmapImage();
+        using var stream = new MemoryStream(bytes);
+        image.BeginInit();
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.StreamSource = stream;
+        image.EndInit();
+        image.Freeze();
+        return image;
+    }
 
     public override MacroCommand Build() => new ImageSearchCommand
     {
@@ -92,6 +157,7 @@ public sealed partial class ImageSearchCommandEditorViewModel : CommandEditorVie
         TolerancePercent = IntOr(ToleranceText, 10),
         ClickIfFound = ClickIfFound,
         ClickButton = ClickButton,
+        DoubleClick = DoubleClick,
         TimeoutMs = IntOr(TimeoutText, 10000),
         FoundXVariable = FoundXVariable,
         FoundYVariable = FoundYVariable,

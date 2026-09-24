@@ -11,6 +11,9 @@ public sealed record ImageCaptureResult(string TemplatePngBase64, int Width, int
 /// <summary>Résultat du bouton « Tester » de l'éditeur Script C#.</summary>
 public sealed record ScriptTestResult(bool Success, string? ErrorMessage);
 
+/// <summary>Résultat du bouton « Tester » de l'éditeur Recherche d'image.</summary>
+public sealed record ImageSearchTestResult(bool Found, int? X, int? Y);
+
 public enum UnsavedChangesChoice
 {
     Save,
@@ -51,6 +54,9 @@ public interface IDialogService
 
     /// <summary>Bouton « Tester » de l'éditeur Script C# : exécute réellement le code (mêmes services que la lecture, variables jetables).</summary>
     Task<ScriptTestResult> TestScriptAsync(string code, int timeoutSeconds);
+
+    /// <summary>Bouton « Tester » de l'éditeur Recherche d'image : cherche réellement le modèle à l'écran (jamais de clic, même si « Cliquer si trouvée » est coché).</summary>
+    Task<ImageSearchTestResult> TestImageSearchAsync(string templatePngBase64, int tolerancePercent, int timeoutMs);
 
     /// <summary>
     /// Avertissement de confiance à l'ouverture d'une macro contenant un Script C# ou une commande Lancer un

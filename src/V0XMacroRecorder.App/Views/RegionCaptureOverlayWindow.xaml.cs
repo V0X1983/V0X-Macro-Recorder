@@ -51,7 +51,7 @@ public partial class RegionCaptureOverlayWindow : Window
         UpdateSelectionVisual(startLocal, e.GetPosition(this));
     }
 
-    private void Window_MouseUp(object sender, MouseButtonEventArgs e)
+    private async void Window_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (_dragStartScreen is not { } startScreen)
         {
@@ -67,15 +67,21 @@ public partial class RegionCaptureOverlayWindow : Window
             return; // Sélection trop petite : ignorée, l'utilisateur peut recommencer.
         }
 
-        // Masquer l'overlay (teinte de fond + rectangle de sélection) avant de capturer : sinon le modèle
-        // capturé contient la teinte de cette fenêtre elle-même (vérifié réellement : jusqu'à ~20% d'écart
-        // par canal sur les pixels du rectangle sélectionné) au lieu du vrai contenu de l'écran, et ne
-        // correspondrait alors plus jamais à l'écran réel pendant la lecture — la recherche d'image
-        // échouerait systématiquement. On utilise Visibility = Hidden (et non Hide()) : Hide() met fin à la
-        // session modale ouverte par ShowDialog(), ce qui rend impossible tout DialogResult ultérieur.
-        // Une pause laisse au compositeur DWM le temps de redessiner le bureau réel avant le BitBlt.
-        Visibility = Visibility.Hidden;
-        System.Threading.Thread.Sleep(150);
+        // Rendre l'overlay invisible (teinte de fond + rectangle de sélection) avant de capturer : sinon le
+        // modèle capturé contient cette teinte au lieu du vrai contenu de l'écran, et ne correspondrait
+        // alors plus jamais à l'écran réel pendant la lecture. **Ne jamais masquer la FENÊTRE elle-même**
+        // (ni Hide(), ni Visibility = Hidden) : les deux mettent fin à la session modale ouverte par
+        // ShowDialog() dès que la boucle de messages a l'occasion de traiter ce changement (ce qui arrive
+        // forcément avec un await, nécessaire pour laisser DWM redessiner avant le BitBlt — un Thread.Sleep
+        // bloquant masquait ce problème par accident en empêchant ce traitement, mais laissait alors le
+        // rectangle de sélection encore visible dans la capture, vérifié réellement avec la bordure
+        // #FF3399FF encore présente dans un modèle capturé). À la place, on rend le CONTENU transparent
+        // (fond + bordure) sans jamais toucher à l'état de la fenêtre : elle reste "affichée en tant que
+        // boîte de dialogue" du point de vue de WPF, donc DialogResult reste assignable ensuite.
+        Background = System.Windows.Media.Brushes.Transparent;
+        SelectionBorder.Visibility = Visibility.Collapsed;
+        InstructionBanner.Visibility = Visibility.Collapsed;
+        await Task.Delay(150);
 
         var bitmap = _screenCapture.Capture(region);
         CapturedRegion = region;

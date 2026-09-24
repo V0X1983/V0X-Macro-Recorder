@@ -851,16 +851,36 @@ public sealed class MacroPlayerTests
     }
 
     [Fact]
+    public async Task ImageSearch_found_with_DoubleClick_clicks_twice()
+    {
+        var images = new FakeImageSearcher { Result = (10, 20) };
+        var sim = new FakeInputSimulator();
+        var player = new MacroPlayer(sim, new FakeWindowFinder(), new FakeElevationService(), new FakeKeyWaiter(), new FakeClipboardService(), new FakeProcessLauncher(), new FakeWindowController(), new FakePixelReader(), new FakeSoundPlayer(), new FakeMessageBoxService(), images, new FakeFileLineSource(), new FakeMacroLoader());
+        var commands = new List<MacroCommand>
+        {
+            new ImageSearchCommand { TemplatePngBase64 = "AAAA", ClickIfFound = true, DoubleClick = true },
+        };
+
+        await player.RunAsync(commands, new PlaybackOptions());
+
+        Assert.Equal(2, sim.Events.Count(e => e is ButtonEvent { Button: MouseButton.Left, Down: true }));
+        Assert.Equal(2, sim.Events.Count(e => e is ButtonEvent { Button: MouseButton.Left, Down: false }));
+    }
+
+    [Fact]
     public async Task ImageSearch_not_found_does_not_click_or_set_variables()
     {
         var images = new FakeImageSearcher { Result = null };
         var sim = new FakeInputSimulator();
         var player = new MacroPlayer(sim, new FakeWindowFinder(), new FakeElevationService(), new FakeKeyWaiter(), new FakeClipboardService(), new FakeProcessLauncher(), new FakeWindowController(), new FakePixelReader(), new FakeSoundPlayer(), new FakeMessageBoxService(), images, new FakeFileLineSource(), new FakeMacroLoader());
+        var warnings = new List<string>();
+        player.Warning += (_, w) => warnings.Add(w);
         var commands = new List<MacroCommand> { new ImageSearchCommand { TemplatePngBase64 = "AAAA", ClickIfFound = true, TimeoutMs = 0 } };
 
         await player.RunAsync(commands, new PlaybackOptions());
 
         Assert.Empty(sim.Events);
+        Assert.Contains("Recherche d'image : modèle non trouvé.", warnings);
     }
 
     [Fact]

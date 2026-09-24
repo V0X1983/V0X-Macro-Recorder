@@ -888,6 +888,7 @@ public sealed class MacroPlayer
 
         if (found is not { } position)
         {
+            Warning?.Invoke(this, "Recherche d'image : modèle non trouvé.");
             return;
         }
 
@@ -905,6 +906,11 @@ public sealed class MacroPlayer
         {
             _simulator.MoveMouseTo(position.X, position.Y);
             await ClickAsync(image.ClickButton, ct).ConfigureAwait(false);
+            if (image.DoubleClick)
+            {
+                await DelayAsync(ScaleDelay(DoubleClickGapMs), ct).ConfigureAwait(false);
+                await ClickAsync(image.ClickButton, ct).ConfigureAwait(false);
+            }
         }
     }
 

@@ -195,6 +195,9 @@ public sealed class CommandDescriberTests
         Assert.Equal(
             "Chercher l'image (16×16, tolérance 10%) puis cliquer",
             CommandDescriber.GetDetails(new ImageSearchCommand { TemplateWidth = 16, TemplateHeight = 16, TolerancePercent = 10, ClickIfFound = true }));
+        Assert.Equal(
+            "Chercher l'image (16×16, tolérance 10%) puis double-cliquer",
+            CommandDescriber.GetDetails(new ImageSearchCommand { TemplateWidth = 16, TemplateHeight = 16, TolerancePercent = 10, ClickIfFound = true, DoubleClick = true }));
     }
 
     [Fact]

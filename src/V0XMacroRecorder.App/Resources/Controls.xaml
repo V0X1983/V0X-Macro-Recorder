@@ -230,7 +230,16 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
-                        <ToggleButton x:Name="Toggle" Focusable="False" ClickMode="Press"
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                        </Grid.ColumnDefinitions>
+                        <!-- Le bouton bascule couvre toute la largeur (inchangé pour les ComboBox non éditables, la
+                             majorité de l'app) ; PART_EditableTextBox ne couvre que la colonne de gauche pour NE
+                             PAS intercepter les clics sur la flèche (colonne de droite) quand IsEditable="True" —
+                             vérifié réellement : sans cette séparation, le champ de texte recouvrait toute la
+                             largeur y compris la flèche, qui ne réagissait alors plus au clic. -->
+                        <ToggleButton x:Name="Toggle" Grid.ColumnSpan="2" Focusable="False" ClickMode="Press"
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
@@ -240,12 +249,17 @@
                                 </ControlTemplate>
                             </ToggleButton.Template>
                         </ToggleButton>
-                        <ContentPresenter IsHitTestVisible="False" Margin="{TemplateBinding Padding}" Content="{TemplateBinding SelectionBoxItem}"
+                        <ContentPresenter x:Name="ContentSite" Grid.Column="0" IsHitTestVisible="False" Margin="{TemplateBinding Padding}" Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" VerticalAlignment="Center"
                                           HorizontalAlignment="Left" TextElement.Foreground="{TemplateBinding Foreground}" />
-                        <Path IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"
+                        <TextBox x:Name="PART_EditableTextBox" Grid.Column="0" Style="{x:Null}" Visibility="Hidden"
+                                 Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}"
+                                 CaretBrush="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}"
+                                 VerticalAlignment="Center" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" Focusable="True" />
+                        <Path Grid.Column="1" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center"
                               Data="M0,0 L4,4 L8,0" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" />
-                        <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                        <Popup x:Name="PART_Popup" Grid.ColumnSpan="2" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False"
                                PopupAnimation="Fade">
                             <Border Background="{DynamicResource BrushSurfaceAlt}" BorderBrush="{DynamicResource BrushBorder}"
                                     BorderThickness="1" CornerRadius="4" MinWidth="{Binding ActualWidth, ElementName=Toggle}"
@@ -256,6 +270,18 @@
                             </Border>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- IsEditable="True" (ex. Aller à l'étiquette) exige deux parties nommées précisément
+                             PART_EditableTextBox et PART_Popup, sinon WPF ne branche jamais correctement la saisie
+                             ni la génération des éléments de la liste sur ce template personnalisé — vérifié
+                             réellement : PART_EditableTextBox seul rendait le champ éditable/tapable, mais la
+                             liste déroulante restait vide malgré un ItemsSource non vide tant que le Popup n'avait
+                             pas aussi le nom PART_Popup. -->
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

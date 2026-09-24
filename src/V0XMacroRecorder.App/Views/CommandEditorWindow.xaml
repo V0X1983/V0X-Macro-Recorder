@@ -329,6 +329,12 @@
                 <TextBlock Text="{Binding TemplateSummary}" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,4" />
                 <Button Content="Capturer une image" Command="{Binding CaptureRegionCommand}" HorizontalAlignment="Left" />
 
+                <Border Visibility="{Binding HasTemplate, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1" Background="Black"
+                        HorizontalAlignment="Left" Margin="0,8,0,0">
+                    <Image Source="{Binding TemplatePreview}" Stretch="Uniform" MaxWidth="240" MaxHeight="180" />
+                </Border>
+
                 <TextBlock Text="Tolérance (%)" Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,0" />
                 <TextBox Text="{Binding ToleranceText, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -340,12 +346,20 @@
                     <TextBlock Text="Bouton" Style="{StaticResource FieldLabelStyle}" />
                     <ComboBox ItemsSource="{x:Static ed:ImageSearchCommandEditorViewModel.ButtonChoices}"
                               SelectedValuePath="Value" SelectedValue="{Binding ClickButton}" />
+                    <CheckBox Content="Double-clic (ex. lancer une icône)" IsChecked="{Binding DoubleClick}" Margin="0,8,0,0" />
                 </StackPanel>
 
                 <TextBlock Text="Variable X du point trouvé (optionnelle)" Style="{StaticResource FieldLabelStyle}" Margin="0,10,0,0" />
                 <TextBox Text="{Binding FoundXVariable, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Text="Variable Y du point trouvé (optionnelle)" Style="{StaticResource FieldLabelStyle}" />
                 <TextBox Text="{Binding FoundYVariable, UpdateSourceTrigger=PropertyChanged}" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Content="Tester" Command="{Binding TestCommand}"
+                            IsEnabled="{Binding IsTesting, Converter={StaticResource InverseBooleanConverter}}" />
+                </StackPanel>
+                <TextBlock Text="{Binding TestResultMessage}" TextWrapping="Wrap" Margin="0,8,0,0"
+                           Visibility="{Binding TestResultMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
             </StackPanel>
         </DataTemplate>
 
@@ -516,7 +530,16 @@
             <StackPanel>
                 <TextBlock Text="Étiquette cible" Style="{StaticResource FieldLabelStyle}" Margin="0,0,0,4" />
                 <ComboBox ItemsSource="{Binding KnownLabels}" Text="{Binding TargetLabel, UpdateSourceTrigger=PropertyChanged}"
-                          IsEditable="True" />
+                          IsEditable="True">
+                    <!-- Foreground forcé explicitement sur chaque élément : dans ce ComboBox éditable (le seul de
+                         l'app), le texte des éléments hérite mal la couleur ambiante malgré le style ComboBoxItem
+                         partagé (vérifié réellement : éléments présents et cliquables, mais invisibles). -->
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Foreground="{DynamicResource BrushTextPrimary}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <TextBlock Text="Choisissez une étiquette existante ou tapez son nom (créez-la via l'icône « Étiquette »)."
                            Style="{StaticResource FieldLabelStyle}" TextWrapping="Wrap" Margin="0,6,0,0" />
             </StackPanel>
