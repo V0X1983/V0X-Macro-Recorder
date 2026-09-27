@@ -186,7 +186,25 @@ public sealed partial class MainPage : Page
 
         if (CommandGrid.SelectedItem is { } first)
         {
-            CommandGrid.ScrollIntoView(first, null);
+            // ViewModel.Document.Rows vient peut-être d'être remplacée en bloc (Refresh()) : le DataGrid tiers
+            // (CommunityToolkit) peut alors planter dans ScrollIntoView avec "Invalid row index" s'il n'a pas
+            // fini de régénérer ses conteneurs de ligne pour la nouvelle collection — piège WinUI 3 reproductible
+            // même en différant l'appel d'un cycle via DispatcherQueue.TryEnqueue. **Une exception levée depuis un
+            // callback TryEnqueue ne passe jamais par Application.UnhandledException et tue le processus
+            // directement, sans être journalisée** — donc capturée ici explicitement : ScrollIntoView n'est qu'un
+            // confort visuel (la sélection elle-même, posée juste au-dessus, reste correcte), son échec ne doit
+            // jamais faire planter l'app.
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    CommandGrid.ScrollIntoView(first, null);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Serilog.Log.Warning(ex, "ScrollIntoView a échoué après une sélection (ligne pas encore prête dans le DataGrid).");
+                }
+            });
         }
     }
 

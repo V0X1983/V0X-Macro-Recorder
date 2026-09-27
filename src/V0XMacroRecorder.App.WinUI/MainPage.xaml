@@ -262,6 +262,7 @@
             <!-- Liste des commandes de la macro. -->
             <Grid Grid.Column="1">
                 <controls:DataGrid x:Name="CommandGrid" ItemsSource="{x:Bind ViewModel.Document.Rows, Mode=OneWay}" IsReadOnly="True"
+                                    AutoGenerateColumns="False"
                                     SelectionMode="Extended" CanUserSortColumns="False" CanUserReorderColumns="False"
                                     AllowDrop="True"
                                     SelectionChanged="CommandGrid_SelectionChanged"
