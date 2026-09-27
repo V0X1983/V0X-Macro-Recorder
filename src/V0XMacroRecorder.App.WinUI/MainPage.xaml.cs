@@ -325,7 +325,10 @@ public sealed partial class MainPage : Page
             indices = [row.Index];
         }
 
-        args.Data.SetData(DragFormat, indices.ToArray());
+        // DataPackage.SetData refuse un int[] brut ("Type mismatch : DataPackage does not support the data type of
+        // the value", vérifié en le testant réellement) — seule une chaîne (ou un type WinRT reconnu comme
+        // string/Uri/IStorageItem[]/flux) passe, donc les index sont sérialisés en texte.
+        args.Data.SetData(DragFormat, string.Join(',', indices));
         args.Data.RequestedOperation = DataPackageOperation.Move;
     }
 
@@ -336,14 +339,19 @@ public sealed partial class MainPage : Page
 
     private async void CommandGrid_Drop(object sender, DragEventArgs e)
     {
-        if (!e.DataView.Contains(DragFormat) || await e.DataView.GetDataAsync(DragFormat) is not int[] indices)
+        if (!e.DataView.Contains(DragFormat) || await e.DataView.GetDataAsync(DragFormat) is not string raw)
         {
             return;
         }
 
+        var indices = raw.Split(',').Select(int.Parse).ToArray();
+
         var rows = ViewModel.Document.Rows;
         var insertBefore = rows.Count;
-        if (FindRow(VisualTreeHelper.FindElementsInHostCoordinates(e.GetPosition(CommandGrid), CommandGrid).FirstOrDefault()) is { DataContext: CommandRowViewModel target } row)
+        // Contrairement à InputHitTest (WPF, coordonnées locales à l'élément passé), FindElementsInHostCoordinates
+        // attend des coordonnées relatives à la fenêtre entière ("host") — GetPosition(null) les donne, jamais
+        // GetPosition(CommandGrid) (piège de portage : CommandGrid n'est pas collée au coin de la fenêtre).
+        if (FindRow(VisualTreeHelper.FindElementsInHostCoordinates(e.GetPosition(null), CommandGrid).FirstOrDefault()) is { DataContext: CommandRowViewModel target } row)
         {
             insertBefore = target.Index + (e.GetPosition(row).Y > row.ActualHeight / 2 ? 1 : 0);
         }
