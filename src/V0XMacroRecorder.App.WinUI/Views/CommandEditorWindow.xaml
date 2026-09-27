@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="V0XMacroRecorder.App.Views.CommandEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ed="using:V0XMacroRecorder.App.ViewModels.Editors"
+    xmlns:views="using:V0XMacroRecorder.App.Views"
+    xmlns:helpers="using:V0XMacroRecorder.App.Helpers"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid">
+        <Grid.Resources>
+            <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <helpers:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            <helpers:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+
+            <DataTemplate x:Key="ChoiceTemplate">
+                <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+
+            <!-- Souris -->
+            <DataTemplate x:Key="MouseTemplate" x:DataType="ed:MouseCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Action" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:MouseCommandEditorViewModel.ActionChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Action, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <StackPanel Visibility="{Binding ShowsButton, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Bouton" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{x:Bind ed:MouseCommandEditorViewModel.ButtonChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                  SelectedValuePath="Value" SelectedValue="{Binding Button, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsPosition, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Repère des coordonnées" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{x:Bind ed:MouseCommandEditorViewModel.CoordinateModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                  SelectedValuePath="Value" SelectedValue="{Binding CoordinateMode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                        <Grid Margin="0,12,0,0" ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="X (pixels)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding XText, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Y (pixels)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding YText, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsWheel, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Crans de molette (positif = vers le haut, négatif = vers le bas)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        <TextBox Text="{Binding WheelText, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Clavier -->
+            <DataTemplate x:Key="KeyboardTemplate" x:DataType="ed:KeyboardCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Action" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:KeyboardCommandEditorViewModel.ActionChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Action, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <TextBlock Text="Touche : cliquez dans le champ puis appuyez sur la touche voulue" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    <TextBox Tag="KeyCapture" IsReadOnly="True" Text="{Binding KeyLabel, Mode=OneWay}" FontWeight="SemiBold" />
+
+                    <TextBlock Text="Modificateurs" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox Content="Ctrl" IsChecked="{Binding Ctrl, Mode=TwoWay}" Margin="0,0,16,0" />
+                        <CheckBox Content="Alt" IsChecked="{Binding Alt, Mode=TwoWay}" Margin="0,0,16,0" />
+                        <CheckBox Content="Maj" IsChecked="{Binding Shift, Mode=TwoWay}" Margin="0,0,16,0" />
+                        <CheckBox Content="Win" IsChecked="{Binding Win, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Texte -->
+            <DataTemplate x:Key="TextTemplate" x:DataType="ed:TextCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Texte à saisir" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding Text, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap"
+                             MinHeight="90" MaxHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    <TextBlock Text="Délai entre deux caractères (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding CharacterDelayText, Mode=TwoWay}" />
+                    <CheckBox Content="Remplacer {date}, {clipboard} et {var:nom} avant la saisie" IsChecked="{Binding ExpandTokens, Mode=TwoWay}" Margin="0,10,0,0" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Presse-papiers -->
+            <DataTemplate x:Key="ClipboardTemplate" x:DataType="ed:ClipboardCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Action" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:ClipboardCommandEditorViewModel.ActionChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Action, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <StackPanel Visibility="{Binding ShowsText, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Texte à copier (jetons {date}/{clipboard}/{var:nom} acceptés)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        <TextBox Text="{Binding Text, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="60" MaxHeight="160" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsVariable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Nom de la variable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding VariableName, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Attente -->
+            <DataTemplate x:Key="WaitTemplate" x:DataType="ed:WaitCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Nature de l'attente" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:WaitCommandEditorViewModel.ModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Mode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <StackPanel Visibility="{Binding ShowsDuration, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Durée d'attente (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding DurationText, Mode=TwoWay}" />
+                        <TextBlock Text="Durée aléatoire supplémentaire (ms, 0 = attente fixe)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding RandomExtraText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsWindowFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Titre de la fenêtre (partiel)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WindowTitle, Mode=TwoWay}" />
+                        <TextBlock Text="Classe Win32 (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WindowClassName, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsKeyField, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Touche : cliquez dans le champ puis appuyez sur la touche voulue (laisser « N'importe quelle touche » pour ne pas restreindre)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        <TextBox Tag="WaitKeyCapture" IsReadOnly="True" Text="{Binding KeyLabel, Mode=OneWay}" FontWeight="SemiBold" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsPixelFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="X" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding PixelXText, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Y" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding PixelYText, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Couleur attendue (#RRGGBB)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding PixelColorHex, Mode=TwoWay}" />
+                        <Button Content="Choisir à l'écran (pipette)" Command="{Binding PickColorCommand}" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding PixelToleranceText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsImageFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{Binding ImageTemplateSummary}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Button Content="Capturer une image" Command="{Binding CaptureImageCommand}" Margin="0,4,0,0" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding ImageToleranceText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsTimeout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Délai d'attente maximal (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding TimeoutText, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Programme / fichier -->
+            <DataTemplate x:Key="LaunchTemplate" x:DataType="ed:LaunchCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Nature" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:LaunchCommandEditorViewModel.ModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Mode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <TextBlock Text="Chemin (programme ou commande)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding Path, Mode=TwoWay}" />
+
+                    <StackPanel Visibility="{Binding ShowsProgramFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Arguments (optionnels)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding Arguments, Mode=TwoWay}" />
+                        <TextBlock Text="Dossier de travail (optionnel)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WorkingDirectory, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <CheckBox Content="Attendre la fin du programme" IsChecked="{Binding WaitForExit, Mode=TwoWay}" Margin="0,10,0,0" />
+                    <StackPanel Visibility="{Binding ShowsTimeout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Délai d'attente maximal (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WaitTimeoutText, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Ouvrir une URL -->
+            <DataTemplate x:Key="OpenUrlTemplate" x:DataType="ed:OpenUrlCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Adresse web ou chemin de fichier" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding Path, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Fenêtre -->
+            <DataTemplate x:Key="WindowTemplate" x:DataType="ed:WindowCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Action" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:WindowCommandEditorViewModel.ActionChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Action, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <TextBlock Text="Titre de la fenêtre (partiel)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding WindowTitle, Mode=TwoWay}" />
+                    <TextBlock Text="Classe Win32 (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding WindowClassName, Mode=TwoWay}" />
+
+                    <StackPanel Visibility="{Binding ShowsMoveResize, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid Margin="0,8,0,0" ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="X" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding XText, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Y" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding YText, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,8,0,0" ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Largeur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding WidthText, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Hauteur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding HeightText, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Pixel / couleur -->
+            <DataTemplate x:Key="PixelTemplate" x:DataType="ed:PixelCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Nature" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:PixelCommandEditorViewModel.ModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Mode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <Grid Margin="0,8,0,0" ColumnDefinitions="*,12,*">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="X" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding XText, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Y" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding YText, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="Couleur attendue (#RRGGBB)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding ColorHex, Mode=TwoWay}" />
+                    <Button Content="Choisir à l'écran (pipette)" Command="{Binding PickColorCommand}" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                    <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding ToleranceText, Mode=TwoWay}" />
+
+                    <StackPanel Visibility="{Binding ShowsTimeout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Délai d'attente maximal (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding TimeoutText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsVariable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Variable recevant le résultat (1/0)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding VariableName, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Sons -->
+            <DataTemplate x:Key="SoundTemplate" x:DataType="ed:SoundCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Fichier son (.wav)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding FilePath, Mode=TwoWay}" />
+                    <CheckBox Content="Attendre la fin du son" IsChecked="{Binding WaitForCompletion, Mode=TwoWay}" Margin="0,10,0,0" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Message -->
+            <DataTemplate x:Key="MessageTemplate" x:DataType="ed:MessageCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Titre" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding Title, Mode=TwoWay}" />
+                    <TextBlock Text="Message (jetons {date}/{clipboard}/{var:nom} acceptés)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding Text, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap"
+                             MinHeight="70" MaxHeight="160" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    <TextBlock Text="Nature" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <ComboBox ItemsSource="{x:Bind ed:MessageCommandEditorViewModel.KindChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding MessageKind, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                    <StackPanel Visibility="{Binding ShowsResultVariable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Variable recevant « ok »/« cancel »" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding ResultVariableName, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Recherche d'image -->
+            <DataTemplate x:Key="ImageSearchTemplate" x:DataType="ed:ImageSearchCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="{Binding TemplateSummary}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <Button Content="Capturer une image" Command="{Binding CaptureRegionCommand}" HorizontalAlignment="Left" />
+
+                    <Border Visibility="{Binding HasTemplate, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Background="Black"
+                            HorizontalAlignment="Left" Margin="0,8,0,0">
+                        <Image Source="{Binding TemplatePreview}" Stretch="Uniform" MaxWidth="240" MaxHeight="180" />
+                    </Border>
+
+                    <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,10,0,0" />
+                    <TextBox Text="{Binding ToleranceText, Mode=TwoWay}" />
+
+                    <TextBlock Text="Délai d'attente maximal (ms, 0 = chercher une seule fois)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding TimeoutText, Mode=TwoWay}" />
+
+                    <CheckBox Content="Cliquer si trouvée" IsChecked="{Binding ClickIfFound, Mode=TwoWay}" Margin="0,10,0,0" />
+                    <StackPanel Visibility="{Binding ShowsButton, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Bouton" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{x:Bind ed:ImageSearchCommandEditorViewModel.ButtonChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                  SelectedValuePath="Value" SelectedValue="{Binding ClickButton, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                        <CheckBox Content="Double-clic (ex. lancer une icône)" IsChecked="{Binding DoubleClick, Mode=TwoWay}" Margin="0,8,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Text="Variable X du point trouvé (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,10,0,0" />
+                    <TextBox Text="{Binding FoundXVariable, Mode=TwoWay}" />
+                    <TextBlock Text="Variable Y du point trouvé (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding FoundYVariable, Mode=TwoWay}" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="Tester" Command="{Binding TestCommand}"
+                                IsEnabled="{Binding IsTesting, Converter={StaticResource InverseBooleanConverter}}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding TestResultMessage}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Visibility="{Binding TestResultMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Si (condition) -->
+            <DataTemplate x:Key="IfTemplate" x:DataType="ed:IfCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Condition" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:IfCommandEditorViewModel.ConditionKindChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding ConditionKind, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                    <CheckBox Content="Inverser (Sinon si)" IsChecked="{Binding Negate, Mode=TwoWay}" Margin="0,8,0,0" />
+
+                    <StackPanel Visibility="{Binding ShowsWindowFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Titre de la fenêtre (partiel)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WindowTitle, Mode=TwoWay}" />
+                        <TextBlock Text="Classe Win32 (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding WindowClassName, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsPixelFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="X" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding PixelXText, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Y" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBox Text="{Binding PixelYText, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Couleur attendue (#RRGGBB)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding PixelColorHex, Mode=TwoWay}" />
+                        <Button Content="Choisir à l'écran (pipette)" Command="{Binding PickColorCommand}" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding PixelToleranceText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsImageFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding ImageSummary}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Button Content="Capturer une image" Command="{Binding CaptureImageCommand}" Margin="0,4,0,0" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding ImageToleranceText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsVariableFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Variable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding VariableName, Mode=TwoWay}" />
+                        <TextBlock Text="Opérateur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{x:Bind ed:IfCommandEditorViewModel.ComparisonOperatorChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                  SelectedValuePath="Value" SelectedValue="{Binding ComparisonOperator, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                        <TextBlock Text="Valeur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding ComparisonValue, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsFileFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Chemin du fichier" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding FilePath, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Boucle -->
+            <DataTemplate x:Key="LoopTemplate" x:DataType="ed:LoopCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Nature" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:LoopCommandEditorViewModel.ModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Mode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                    <StackPanel Visibility="{Binding ShowsRepeatCount, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Nombre de répétitions" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding RepeatCountText, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsWhile, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Condition" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{x:Bind ed:LoopCommandEditorViewModel.ConditionKindChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                  SelectedValuePath="Value" SelectedValue="{Binding ConditionKind, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+                        <StackPanel Visibility="{Binding ShowsWindowFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,8,0,0">
+                            <TextBlock Text="Titre de la fenêtre (partiel)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding WindowTitle, Mode=TwoWay}" />
+                            <TextBlock Text="Classe Win32 (optionnelle)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding WindowClassName, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ShowsPixelFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,8,0,0">
+                            <Grid ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="X" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBox Text="{Binding PixelXText, Mode=TwoWay}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Y" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBox Text="{Binding PixelYText, Mode=TwoWay}" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="Couleur attendue (#RRGGBB)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding PixelColorHex, Mode=TwoWay}" />
+                            <Button Content="Choisir à l'écran (pipette)" Command="{Binding PickColorCommand}" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                            <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding PixelToleranceText, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ShowsImageFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,8,0,0">
+                            <TextBlock Text="{Binding ImageSummary}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Button Content="Capturer une image" Command="{Binding CaptureImageCommand}" Margin="0,4,0,0" HorizontalAlignment="Left" />
+                            <TextBlock Text="Tolérance (%)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0" />
+                            <TextBox Text="{Binding ImageToleranceText, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ShowsVariableCompareFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,8,0,0">
+                            <TextBlock Text="Variable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding ConditionVariableName, Mode=TwoWay}" />
+                            <TextBlock Text="Opérateur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <ComboBox ItemsSource="{x:Bind ed:LoopCommandEditorViewModel.ComparisonOperatorChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                                      SelectedValuePath="Value" SelectedValue="{Binding ComparisonOperator, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                            <TextBlock Text="Valeur" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding ComparisonValue, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ShowsFileFields, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,8,0,0">
+                            <TextBlock Text="Chemin du fichier" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBox Text="{Binding ConditionFilePath, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding ShowsForEachLine, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <TextBlock Text="Fichier texte" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding LinesFilePath, Mode=TwoWay}" />
+                        <TextBlock Text="Variable recevant chaque ligne" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding LineVariableName, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Variable -->
+            <DataTemplate x:Key="VariableTemplate" x:DataType="ed:VariableCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Action" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{x:Bind ed:VariableCommandEditorViewModel.ModeChoices}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                              SelectedValuePath="Value" SelectedValue="{Binding Mode, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Nom de la variable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding Name, Mode=TwoWay}" />
+                    <TextBlock Text="{Binding ValueHint}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding Value, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Étiquette -->
+            <DataTemplate x:Key="LabelTemplate" x:DataType="ed:LabelCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Nom de l'étiquette" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding Name, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Aller à l'étiquette -->
+            <DataTemplate x:Key="GotoTemplate" x:DataType="ed:GotoCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Étiquette cible" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{Binding KnownLabels}" Text="{Binding TargetLabel, Mode=TwoWay}" IsEditable="True" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Choisissez une étiquette existante ou tapez son nom (créez-la via l'icône « Étiquette »)."
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Arrêter -->
+            <DataTemplate x:Key="StopTemplate" x:DataType="ed:StopCommandEditorViewModel">
+                <TextBlock Text="Arrête immédiatement la lecture (relâche les touches/boutons tenus)." TextWrapping="Wrap" />
+            </DataTemplate>
+
+            <!-- Pause -->
+            <DataTemplate x:Key="PauseTemplate" x:DataType="ed:PauseCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Touche : cliquez dans le champ puis appuyez sur la touche voulue (laisser « N'importe quelle touche » pour ne pas restreindre)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    <TextBox Tag="WaitKeyCapture" IsReadOnly="True" Text="{Binding KeyLabel, Mode=OneWay}" FontWeight="SemiBold" />
+                    <TextBlock Text="Délai d'attente maximal (ms, 0 = infini)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding TimeoutText, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Appeler une autre macro -->
+            <DataTemplate x:Key="CallTemplate" x:DataType="ed:CallCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Fichier macro (.v0xmacro)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding MacroFilePath, Mode=TwoWay}" />
+                    <Button Content="Parcourir…" Command="{Binding BrowseCommand}" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Commentaire -->
+            <DataTemplate x:Key="CommentTemplate" x:DataType="ed:CommentCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Commentaire (ignoré à la lecture)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding Text, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap"
+                             MinHeight="90" MaxHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Script C# -->
+            <DataTemplate x:Key="ScriptTemplate" x:DataType="ed:ScriptCommandEditorViewModel">
+                <StackPanel>
+                    <TextBlock Text="Code C# — API disponible : Mouse, Keyboard, Window, Clipboard, Vars, Log"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                    <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <views:ScriptEditorControl x:Name="ScriptEditor" Height="220" Code="{Binding Code, Mode=TwoWay}" />
+                    </Border>
+
+                    <TextBlock Text="Délai d'exécution maximal (secondes)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,10,0,0" />
+                    <TextBox Text="{Binding TimeoutText, Mode=TwoWay}" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="Tester" Command="{Binding TestCommand}"
+                                IsEnabled="{Binding IsTesting, Converter={StaticResource InverseBooleanConverter}}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding TestResultMessage}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Visibility="{Binding TestResultMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+                    <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                               Text="Sécurité : ce script s'exécute réellement (souris, clavier, fenêtres…), aussi bien avec « Tester » qu'à la lecture. Ne l'exécutez que si vous en faites confiance le contenu ; il n'est jamais exécuté à la simple ouverture d'un fichier macro." />
+                </StackPanel>
+            </DataTemplate>
+
+            <!-- Saisie protégée -->
+            <DataTemplate x:Key="SecureInputTemplate" x:DataType="ed:SecureInputCommandEditorViewModel">
+                <StackPanel>
+                    <RadioButton Content="Demander le secret à chaque lecture (recommandé, jamais rien d'enregistré)"
+                                 GroupName="SecureInputMode" IsChecked="{Binding PromptAtPlayback, Mode=TwoWay}" />
+                    <RadioButton Content="Enregistrer un secret chiffré (cet ordinateur et ce compte Windows uniquement)"
+                                 GroupName="SecureInputMode" Margin="0,4,0,0"
+                                 IsChecked="{Binding PromptAtPlayback, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay}" />
+
+                    <StackPanel Margin="0,10,0,0" Visibility="{Binding PromptAtPlayback, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Libellé affiché par l'invite à la lecture" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBox Text="{Binding PromptLabel, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,10,0,0" Visibility="{Binding PromptAtPlayback, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        <TextBlock Text="Secret" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <PasswordBox Tag="SecureInputSecret" FontFamily="Consolas" PasswordChanged="SecureInputSecretBox_PasswordChanged" />
+                        <TextBlock Text="Un secret est déjà enregistré : laissez ce champ vide pour le conserver, ou saisissez-en un nouveau pour le remplacer."
+                                   FontSize="11" Opacity="0.8" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Visibility="{Binding HasStoredSecret, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+
+                    <TextBlock Text="Délai entre deux caractères (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,10,0,0" />
+                    <TextBox Text="{Binding CharacterDelayText, Mode=TwoWay}" />
+
+                    <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                               Text="Sécurité : le secret est saisi comme du texte normal (visible à l'écran pendant la lecture, comme n'importe quel mot de passe tapé au clavier). Le mode « enregistrer » chiffre le secret pour cet ordinateur et ce compte Windows uniquement : une macro copiée ailleurs ne pourra pas le déchiffrer." />
+                </StackPanel>
+            </DataTemplate>
+
+            <views:CommandEditorTemplateSelector x:Key="EditorTemplateSelector"
+                MouseTemplate="{StaticResource MouseTemplate}" KeyboardTemplate="{StaticResource KeyboardTemplate}"
+                TextTemplate="{StaticResource TextTemplate}" ClipboardTemplate="{StaticResource ClipboardTemplate}"
+                WaitTemplate="{StaticResource WaitTemplate}" LaunchTemplate="{StaticResource LaunchTemplate}"
+                OpenUrlTemplate="{StaticResource OpenUrlTemplate}" WindowTemplate="{StaticResource WindowTemplate}"
+                PixelTemplate="{StaticResource PixelTemplate}" SoundTemplate="{StaticResource SoundTemplate}"
+                MessageTemplate="{StaticResource MessageTemplate}" ImageSearchTemplate="{StaticResource ImageSearchTemplate}"
+                IfTemplate="{StaticResource IfTemplate}" LoopTemplate="{StaticResource LoopTemplate}"
+                VariableTemplate="{StaticResource VariableTemplate}" LabelTemplate="{StaticResource LabelTemplate}"
+                GotoTemplate="{StaticResource GotoTemplate}" StopTemplate="{StaticResource StopTemplate}"
+                PauseTemplate="{StaticResource PauseTemplate}" CallTemplate="{StaticResource CallTemplate}"
+                CommentTemplate="{StaticResource CommentTemplate}" ScriptTemplate="{StaticResource ScriptTemplate}"
+                SecureInputTemplate="{StaticResource SecureInputTemplate}" />
+        </Grid.Resources>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20" MaxWidth="460">
+                <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource EditorTemplateSelector}"
+                                HorizontalContentAlignment="Stretch" />
+
+                <StackPanel Visibility="{Binding ShowsDelay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="Délai avant la commande (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBox Text="{Binding DelayText, Mode=TwoWay}" />
+                </StackPanel>
+
+                <TextBlock Text="Vérifiez les valeurs saisies : des nombres entiers sont attendus." Margin="0,12,0,0"
+                           Foreground="{ThemeResource SystemFillColorCautionBrush}" TextWrapping="Wrap"
+                           Visibility="{Binding IsValid, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button Content="OK" MinWidth="90" Style="{StaticResource AccentButtonStyle}"
+                            IsEnabled="{Binding IsValid}" Click="OkButton_Click" />
+                    <Button Content="Annuler" MinWidth="90" Margin="8,0,0,0" Click="CancelButton_Click" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

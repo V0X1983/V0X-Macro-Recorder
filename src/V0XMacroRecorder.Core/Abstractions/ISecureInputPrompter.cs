@@ -4,5 +4,5 @@ namespace V0XMacroRecorder.Core.Abstractions;
 public interface ISecureInputPrompter
 {
     /// <summary>Renvoie le secret saisi, ou null si l'utilisateur annule.</summary>
-    string? PromptForSecret(string title, string message);
+    Task<string?> PromptForSecretAsync(string title, string message);
 }

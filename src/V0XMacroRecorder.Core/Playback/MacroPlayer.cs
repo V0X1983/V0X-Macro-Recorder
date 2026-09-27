@@ -964,7 +964,7 @@ public sealed class MacroPlayer
                 return;
             }
 
-            secret = _securePrompter.PromptForSecret("Saisie protégée", secureInput.PromptLabel);
+            secret = await _securePrompter.PromptForSecretAsync("Saisie protégée", secureInput.PromptLabel).ConfigureAwait(false);
             if (secret is null)
             {
                 Warning?.Invoke(this, "Saisie protégée : annulée par l'utilisateur.");

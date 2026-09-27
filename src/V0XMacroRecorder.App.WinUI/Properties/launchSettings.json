@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "V0XMacroRecorder.App.WinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "V0XMacroRecorder.App.WinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

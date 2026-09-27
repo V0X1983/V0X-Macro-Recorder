@@ -8,9 +8,9 @@ public sealed class FakeSecureInputPrompter : ISecureInputPrompter
 
     public List<(string Title, string Message)> Calls { get; } = [];
 
-    public string? PromptForSecret(string title, string message)
+    public Task<string?> PromptForSecretAsync(string title, string message)
     {
         Calls.Add((title, message));
-        return NextResult;
+        return Task.FromResult(NextResult);
     }
 }

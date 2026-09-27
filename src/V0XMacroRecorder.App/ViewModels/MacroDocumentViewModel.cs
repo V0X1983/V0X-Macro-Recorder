@@ -305,13 +305,13 @@ public partial class MacroDocumentViewModel : ObservableObject
             return;
         }
 
-        var password = _securePrompter.PromptForSecret("Protéger cette macro", "Choisissez un mot de passe (à retenir : il ne peut pas être récupéré s'il est oublié).");
+        var password = _securePrompter.PromptForSecretAsync("Protéger cette macro", "Choisissez un mot de passe (à retenir : il ne peut pas être récupéré s'il est oublié).").GetAwaiter().GetResult();
         if (string.IsNullOrEmpty(password))
         {
             return;
         }
 
-        var confirmation = _securePrompter.PromptForSecret("Protéger cette macro", "Confirmez le mot de passe.");
+        var confirmation = _securePrompter.PromptForSecretAsync("Protéger cette macro", "Confirmez le mot de passe.").GetAwaiter().GetResult();
         if (password != confirmation)
         {
             _dialogs.ShowError("Protéger cette macro", "Les deux mots de passe ne correspondent pas.");
@@ -331,7 +331,7 @@ public partial class MacroDocumentViewModel : ObservableObject
             var raw = File.ReadAllText(path, Encoding.UTF8);
             if (ProtectedMacroFile.IsProtected(raw))
             {
-                password = _securePrompter.PromptForSecret("Fichier protégé", $"Mot de passe de « {Path.GetFileName(path)} ».");
+                password = _securePrompter.PromptForSecretAsync("Fichier protégé", $"Mot de passe de « {Path.GetFileName(path)} ».").GetAwaiter().GetResult();
                 if (password is null)
                 {
                     return; // Annulé par l'utilisateur.

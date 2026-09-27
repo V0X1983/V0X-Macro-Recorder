@@ -5,20 +5,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.11.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="10.0.12" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.12" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Uniquement pour System.Windows.Automation (Win32SecureInputGuard) : pas de XAML/UseWPF ici, seulement les assemblies UI Automation du framework partagé. -->
-    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
+    <PackageReference Include="System.Windows.Extensions" Version="10.0.12" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

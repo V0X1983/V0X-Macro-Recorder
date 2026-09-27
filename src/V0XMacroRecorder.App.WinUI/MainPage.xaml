@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="V0XMacroRecorder.App.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:V0XMacroRecorder.App"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:V0XMacroRecorder.App.ViewModels"
+    xmlns:helpers="using:V0XMacroRecorder.App.Helpers"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    mc:Ignorable="d">
+
+    <!--
+        Port de MainWindow.xaml (WPF) : le menu/la barre d'outils/la grille de commandes vivent ici plutôt que dans
+        MainWindow.xaml (coquille de fenêtre, voir son commentaire). Styles WPF personnalisés (ToolbarButtonStyle,
+        SideToolButtonStyle, ToggleSwitchStyle, FoldButtonStyle…) volontairement PAS reconstruits en ControlTemplates
+        WinUI 3 pour l'instant (simplification assumée, voir PROMPT.md) : boutons stylés en ligne, aspect non encore
+        peaufiné visuellement (jamais vérifié dans cet environnement, pas d'affichage réel disponible).
+    -->
+    <Page.Resources>
+        <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <helpers:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+        <helpers:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+        <helpers:CountdownBannerTextConverter x:Key="CountdownBannerTextConverter" />
+        <helpers:FoldGlyphConverter x:Key="FoldGlyphConverter" />
+        <helpers:IndentLevelToMarginConverter x:Key="IndentLevelToMarginConverter" />
+
+        <DataTemplate x:Key="ChoiceItemTemplate">
+            <TextBlock Text="{Binding Label}" />
+        </DataTemplate>
+    </Page.Resources>
+
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="N" Modifiers="Control" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="S" Modifiers="Control" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="S" Modifiers="Control,Shift" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="Z" Modifiers="Control" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="Y" Modifiers="Control" Invoked="OnKeyboardAccelerator" />
+        <KeyboardAccelerator Key="R" Modifiers="Control,Menu" Invoked="OnKeyboardAccelerator" />
+    </Page.KeyboardAccelerators>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Barre de menus. -->
+        <MenuBar Grid.Row="0">
+            <MenuBarItem Title="Fichier">
+                <MenuFlyoutItem Text="Nouveau" Command="{x:Bind ViewModel.Document.NewCommand}" KeyboardAcceleratorTextOverride="Ctrl+N" />
+                <MenuFlyoutItem Text="Ouvrir…" Command="{x:Bind ViewModel.Document.OpenCommand}" KeyboardAcceleratorTextOverride="Ctrl+O" />
+                <MenuFlyoutSubItem x:Name="RecentFilesMenu" Text="Fichiers récents" IsEnabled="{x:Bind ViewModel.Document.HasRecentFiles, Mode=OneWay}" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Enregistrer" Command="{x:Bind ViewModel.Document.SaveCommand}" KeyboardAcceleratorTextOverride="Ctrl+S" />
+                <MenuFlyoutItem Text="Enregistrer sous…" Command="{x:Bind ViewModel.Document.SaveAsCommand}" KeyboardAcceleratorTextOverride="Ctrl+Maj+S" />
+                <MenuFlyoutItem Text="Enregistrer sous (protégé par mot de passe)…" Command="{x:Bind ViewModel.Document.SaveAsProtectedCommand}" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Quitter" Command="{x:Bind ViewModel.ExitCommand}" KeyboardAcceleratorTextOverride="Alt+F4" />
+            </MenuBarItem>
+
+            <MenuBarItem Title="Édition">
+                <MenuFlyoutItem Text="Annuler" Command="{x:Bind ViewModel.Document.UndoCommand}" KeyboardAcceleratorTextOverride="Ctrl+Z" />
+                <MenuFlyoutItem Text="Rétablir" Command="{x:Bind ViewModel.Document.RedoCommand}" KeyboardAcceleratorTextOverride="Ctrl+Y" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Couper" Command="{x:Bind ViewModel.Document.CutCommand}" KeyboardAcceleratorTextOverride="Ctrl+X" />
+                <MenuFlyoutItem Text="Copier" Command="{x:Bind ViewModel.Document.CopyCommand}" KeyboardAcceleratorTextOverride="Ctrl+C" />
+                <MenuFlyoutItem Text="Coller" Command="{x:Bind ViewModel.Document.PasteCommand}" KeyboardAcceleratorTextOverride="Ctrl+V" />
+                <MenuFlyoutItem Text="Supprimer" Command="{x:Bind ViewModel.Document.DeleteCommand}" KeyboardAcceleratorTextOverride="Suppr" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Modifier…" Command="{x:Bind ViewModel.Document.EditSelectedCommand}" KeyboardAcceleratorTextOverride="Entrée" />
+                <MenuFlyoutItem Text="Tout sélectionner" Click="SelectAllMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+A" />
+            </MenuBarItem>
+
+            <MenuBarItem Title="Affichage">
+                <MenuFlyoutSubItem Text="Thème">
+                    <RadioMenuFlyoutItem Text="Sombre" GroupName="Theme" IsChecked="{x:Bind ViewModel.IsDarkTheme, Mode=OneWay}" Click="ThemeMenuItem_Click" Tag="Dark" />
+                    <RadioMenuFlyoutItem Text="Clair" GroupName="Theme" IsChecked="{x:Bind ViewModel.IsLightTheme, Mode=OneWay}" Click="ThemeMenuItem_Click" Tag="Light" />
+                    <RadioMenuFlyoutItem Text="Système" GroupName="Theme" IsChecked="{x:Bind ViewModel.IsSystemTheme, Mode=OneWay}" Click="ThemeMenuItem_Click" Tag="System" />
+                </MenuFlyoutSubItem>
+            </MenuBarItem>
+
+            <!-- Chaque type de commande de la barre d'icônes est aussi proposé ici (peuplé en code-behind depuis CommandPalette). -->
+            <MenuBarItem x:Name="InsertMenuBarItem" Title="Insérer" />
+
+            <MenuBarItem Title="Actions">
+                <MenuFlyoutItem Text="{x:Bind ViewModel.Document.RecordButtonLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Document.ToggleRecordingCommand}" KeyboardAcceleratorTextOverride="Ctrl+Alt+R" />
+                <MenuFlyoutItem Text="{x:Bind ViewModel.Document.PlayButtonLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Document.TogglePlaybackCommand}" />
+                <MenuFlyoutItem Text="{x:Bind ViewModel.Document.PauseButtonLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Document.TogglePauseCommand}"
+                                Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <MenuFlyoutItem Text="Arrêt d'urgence" IsEnabled="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay}" Click="EmergencyStopMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+Alt+S" />
+            </MenuBarItem>
+
+            <MenuBarItem Title="Outils">
+                <MenuFlyoutItem Text="Relancer en administrateur" Command="{x:Bind ViewModel.Document.RelaunchElevatedCommand}" IsEnabled="{x:Bind ViewModel.Document.IsElevated, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Raccourcis de macros…" Command="{x:Bind ViewModel.ManageMacroHotkeysCommand}" />
+                <MenuFlyoutItem Text="Planifier une macro…" Command="{x:Bind ViewModel.ManageMacroScheduleCommand}" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="Paramètres…" Command="{x:Bind ViewModel.OpenSettingsCommand}" />
+            </MenuBarItem>
+
+            <MenuBarItem Title="Aide">
+                <MenuFlyoutItem Text="Guide de démarrage…" Command="{x:Bind ViewModel.ShowHelpCommand}" />
+                <MenuFlyoutItem Text="À propos de V0X Macro Recorder" Click="AboutMenuItem_Click" />
+            </MenuBarItem>
+        </MenuBar>
+
+        <!-- Barre d'outils : ENREGISTRER, LECTURE, Paramètres. -->
+        <Border Grid.Row="1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="6,4">
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{x:Bind ViewModel.Document.ToggleRecordingCommand}"
+                        ToolTipService.ToolTip="Démarrer/arrêter l'enregistrement (Ctrl+Alt+R)"
+                        AutomationProperties.Name="{x:Bind ViewModel.Document.RecordButtonLabel, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="22" Height="22">
+                            <Ellipse Stroke="{ThemeResource SystemFillColorCriticalBrush}" StrokeThickness="2.5" />
+                            <Ellipse Width="10" Height="10" Fill="{ThemeResource SystemFillColorCriticalBrush}" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.Document.RecordButtonLabel, Mode=OneWay}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button ToolTipService.ToolTip="Options d'enregistrement" AutomationProperties.Name="Options d'enregistrement" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <StackPanel MinWidth="300">
+                                <TextBlock Text="Options d'enregistrement" FontWeight="SemiBold" Margin="0,0,0,10" />
+
+                                <CheckBox Content="Souris" IsChecked="{x:Bind ViewModel.RecordingOptions.CaptureMouse, Mode=TwoWay}" Margin="0,0,0,4" />
+                                <CheckBox Content="Clavier" IsChecked="{x:Bind ViewModel.RecordingOptions.CaptureKeyboard, Mode=TwoWay}" Margin="0,0,0,4" />
+                                <CheckBox Content="Enregistrer les délais réels" IsChecked="{x:Bind ViewModel.RecordingOptions.RecordDelays, Mode=TwoWay}" Margin="0,0,0,4" />
+                                <CheckBox Content="Regrouper le texte tapé en une commande" IsChecked="{x:Bind ViewModel.RecordingOptions.RecordTypedTextAsString, Mode=TwoWay}" Margin="0,0,0,4" />
+                                <CheckBox Content="Ne pas enregistrer les champs mot de passe" IsChecked="{x:Bind ViewModel.RecordingOptions.DontRecordPasswordFields, Mode=TwoWay}" Margin="0,0,0,10" />
+
+                                <TextBlock Text="Échantillonnage souris" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{x:Bind vm:RecordingOptionsViewModel.MouseSamplingChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                          SelectedValuePath="Value" SelectedValue="{x:Bind ViewModel.RecordingOptions.MouseSampling, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="0,0,0,8" />
+
+                                <TextBlock Text="Repère des coordonnées" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{x:Bind vm:RecordingOptionsViewModel.CoordinateModeChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                          SelectedValuePath="Value" SelectedValue="{x:Bind ViewModel.RecordingOptions.CoordinateMode, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="0,0,0,8" />
+
+                                <TextBlock Text="Minuteur de démarrage" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{x:Bind vm:RecordingOptionsViewModel.CountdownChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                          SelectedValuePath="Value" SelectedValue="{x:Bind ViewModel.RecordingOptions.StartCountdownSeconds, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <Button Command="{x:Bind ViewModel.Document.TogglePlaybackCommand}" Margin="12,0,0,0"
+                        ToolTipService.ToolTip="Lire/arrêter la lecture (Ctrl+Alt+S pour l'arrêt d'urgence)"
+                        AutomationProperties.Name="{x:Bind ViewModel.Document.PlayButtonLabel, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="22" Height="22">
+                            <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                            <Path Data="M0,0 L8,5 L0,10 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0"
+                                  Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+                            <Path Data="M0,0 L0,10 M5,0 L5,10" Stroke="White" StrokeThickness="2"
+                                  Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.Document.PlayButtonLabel, Mode=OneWay}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{x:Bind ViewModel.Document.TogglePauseCommand}" Content="{x:Bind ViewModel.Document.PauseButtonLabel, Mode=OneWay}" FontWeight="Bold" Margin="4,0,0,0"
+                        Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        ToolTipService.ToolTip="Mettre en pause / reprendre la lecture" />
+                <Button ToolTipService.ToolTip="Options de lecture" AutomationProperties.Name="Options de lecture" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <StackPanel MinWidth="300">
+                                <TextBlock Text="Options de lecture" FontWeight="SemiBold" Margin="0,0,0,10" />
+
+                                <TextBlock Text="Vitesse" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <Slider Minimum="0.1" Maximum="10" Value="{x:Bind ViewModel.Document.PlaybackOptions.SpeedMultiplier, Mode=TwoWay}" StepFrequency="0.5"
+                                        IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" />
+
+                                <CheckBox Content="Sans délai (aussi vite que possible)" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=TwoWay}" Margin="0,4,0,8" />
+
+                                <TextBlock Text="Répétitions" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                    <NumberBox Grid.Column="0" Value="{x:Bind ViewModel.Document.PlaybackOptions.RepeatCount, Mode=TwoWay}"
+                                               IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" SpinButtonPlacementMode="Compact" />
+                                    <CheckBox Grid.Column="2" Content="En boucle" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=TwoWay}" />
+                                </Grid>
+
+                                <TextBlock Text="Délai entre répétitions (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
+                                <NumberBox Value="{x:Bind ViewModel.Document.PlaybackOptions.DelayBetweenRepeatsMs, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+
+                                <CheckBox Content="Lecture pas à pas" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.StepMode, Mode=TwoWay}" Margin="0,8,0,0" />
+
+                                <TextBlock Text="Fenêtre introuvable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
+                                <ComboBox ItemsSource="{x:Bind vm:PlaybackOptionsViewModel.WindowNotFoundChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                          SelectedValuePath="Value" SelectedValue="{x:Bind ViewModel.Document.PlaybackOptions.WindowNotFoundAction, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="0,0,0,8" />
+
+                                <TextBlock Text="Délai d'attente de la fenêtre (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                                <NumberBox Value="{x:Bind ViewModel.Document.PlaybackOptions.WaitForWindowTimeoutMs, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <Rectangle Width="1" Margin="8,4,8,4" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                <Button Command="{x:Bind ViewModel.OpenSettingsCommand}" ToolTipService.ToolTip="Paramètres">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="20" VerticalAlignment="Center" />
+                        <TextBlock Text="Paramètres" FontSize="14" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Bandeau d'enregistrement : toujours visible pendant la capture. -->
+        <Border Grid.Row="2" Background="{ThemeResource SystemFillColorCriticalBrush}" Padding="12,7"
+                Visibility="{x:Bind ViewModel.Document.IsRecording, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Ellipse Width="10" Height="10" Fill="White" VerticalAlignment="Center" />
+                <TextBlock Margin="8,0,0,0" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"
+                           Text="{x:Bind ViewModel.Document.CountdownSeconds, Mode=OneWay, Converter={StaticResource CountdownBannerTextConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Bandeau de lecture : indique la lecture en cours/pause et le dernier avertissement. -->
+        <Border Grid.Row="2" Background="{ThemeResource AccentFillColorDefaultBrush}" Padding="12,7"
+                Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Ellipse Width="10" Height="10" Fill="#FF0B1410" VerticalAlignment="Center" />
+                <TextBlock x:Name="PlaybackStatusText" Margin="8,0,0,0" FontWeight="SemiBold" Foreground="#FF0B1410" VerticalAlignment="Center" />
+                <TextBlock Margin="16,0,0,0" FontStyle="Italic" Foreground="#FF0B1410" VerticalAlignment="Center"
+                           Text="{x:Bind ViewModel.Document.PlaybackWarning, Mode=OneWay}"
+                           Visibility="{x:Bind ViewModel.Document.PlaybackWarning, Mode=OneWay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
+            <!-- Barre verticale d'icônes : un bouton par type de commande. -->
+            <Border Grid.Column="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,1,0" Padding="4,6">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.CommandPalette}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CommandPaletteItem">
+                                <StackPanel>
+                                    <Rectangle Height="1" Margin="4,5" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Visibility="{x:Bind StartsGroup, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <Button Content="{x:Bind Glyph}" FontFamily="Segoe Fluent Icons" Width="40" Height="40" Padding="0"
+                                            ToolTipService.ToolTip="{x:Bind Title}" AutomationProperties.Name="{x:Bind Title}"
+                                            IsEnabled="{x:Bind IsAvailable}"
+                                            Command="{x:Bind Command}" CommandParameter="{x:Bind Key}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Liste des commandes de la macro. -->
+            <Grid Grid.Column="1">
+                <controls:DataGrid x:Name="CommandGrid" ItemsSource="{x:Bind ViewModel.Document.Rows, Mode=OneWay}" IsReadOnly="True"
+                                    SelectionMode="Extended" CanUserSortColumns="False" CanUserReorderColumns="False"
+                                    AllowDrop="True"
+                                    SelectionChanged="CommandGrid_SelectionChanged"
+                                    DoubleTapped="CommandGrid_DoubleTapped"
+                                    DragOver="CommandGrid_DragOver"
+                                    Drop="CommandGrid_Drop"
+                                    LoadingRow="CommandGrid_LoadingRow"
+                                    UnloadingRow="CommandGrid_UnloadingRow"
+                                    KeyDown="CommandGrid_KeyDown">
+                    <controls:DataGrid.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Ajouter Sinon" Click="AddElseMenuItem_Click" />
+                        </MenuFlyout>
+                    </controls:DataGrid.ContextFlyout>
+                    <controls:DataGrid.Columns>
+                        <controls:DataGridTemplateColumn Header="Commande" Width="220">
+                            <controls:DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="{Binding IndentLevel, Converter={StaticResource IndentLevelToMarginConverter}}">
+                                        <Button Content="{Binding IsCollapsed, Converter={StaticResource FoldGlyphConverter}}"
+                                                Visibility="{Binding IsBlockStart, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Padding="4,0" MinWidth="0" Background="Transparent" BorderThickness="0"
+                                                Click="FoldButton_Click" />
+                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="4,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTextColumn Header="Détails" Width="*" Binding="{Binding Details}" />
+                        <controls:DataGridTextColumn Header="Délai" Width="120" Binding="{Binding DelayText}" />
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" MaxWidth="420"
+                            Visibility="{x:Bind ViewModel.Document.IsEmpty, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="Aucune commande" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="Cliquez sur ENREGISTRER pour capturer vos actions, ou ajoutez des commandes avec la barre d'icônes à gauche ou le menu Insérer."
+                               FontSize="13" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Barre d'état : nombre de commandes, durée estimée, état enregistrement/lecture. -->
+        <Border Grid.Row="4" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0" Padding="10,4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{x:Bind ViewModel.Document.Rows.Count, Mode=OneWay}" />
+                <TextBlock Text=" commande(s)" />
+                <TextBlock Text="•" Margin="10,0" Opacity="0.6" />
+                <TextBlock Text="Durée estimée : ~" />
+                <TextBlock Text="{x:Bind ViewModel.Document.EstimatedDurationText, Mode=OneWay}" />
+                <TextBlock Text="•" Margin="10,0" Opacity="0.6" />
+                <TextBlock Text="{x:Bind ViewModel.Document.StatusText, Mode=OneWay}" FontWeight="SemiBold" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

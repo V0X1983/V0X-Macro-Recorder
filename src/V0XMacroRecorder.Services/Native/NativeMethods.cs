@@ -369,4 +369,47 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool CloseDesktop(IntPtr hDesktop);
+
+    // ---------------------------------------------------------------------------------------- Presse-papiers (texte)
+
+    public const uint CF_UNICODETEXT = 13;
+    public const uint GMEM_MOVEABLE = 0x0002;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool CloseClipboard();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool EmptyClipboard();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetClipboardData(uint uFormat);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalLock(IntPtr hMem);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool GlobalUnlock(IntPtr hMem);
+
+    // ---------------------------------------------------------------------------------------- Boîte de message
+
+    public const uint MB_OK = 0x00000000;
+    public const uint MB_OKCANCEL = 0x00000001;
+    public const uint MB_ICONERROR = 0x00000010;
+    public const uint MB_ICONWARNING = 0x00000030;
+    public const uint MB_ICONINFORMATION = 0x00000040;
+    public const uint MB_SETFOREGROUND = 0x00010000;
+    public const uint MB_TOPMOST = 0x00040000;
+    public const int IDCANCEL = 2;
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 }
