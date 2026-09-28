@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -103,6 +104,10 @@ public partial class MainWindowViewModel : ObservableObject
                 Command = item.Key is "if" or "loop" ? document.InsertBlockCommand : document.InsertCommand,
             })
             .ToList();
+
+        CommandColorRows = new ObservableCollection<CommandKindColorRowViewModel>(
+            PaletteDefinitions.Select(item => new CommandKindColorRowViewModel(
+                item.Key, item.Title, ParseColor(CommandKindPalette.Resolve(item.Key, settings.Current.CommandKindColors)), CommitCommandColor)));
     }
 
     public MacroDocumentViewModel Document { get; }
@@ -149,6 +154,37 @@ public partial class MainWindowViewModel : ObservableObject
         ThemeManager.ApplyTheme(ThemeSetting == AppSettings.SystemTheme
             ? (_systemTheme.IsDarkThemeActive() ? AppSettings.DarkTheme : AppSettings.LightTheme)
             : ThemeSetting);
+
+    // ---------------------------------------------------------------- Couleurs par type de commande
+
+    /// <summary>Une ligne par type de commande de <see cref="PaletteDefinitions"/>, éditable dans Paramètres.</summary>
+    public ObservableCollection<CommandKindColorRowViewModel> CommandColorRows { get; } = [];
+
+    [RelayCommand]
+    private async Task ResetCommandColorsAsync()
+    {
+        _settings.Current.CommandKindColors.Clear();
+        await _settings.SaveAsync();
+        foreach (var row in CommandColorRows)
+        {
+            row.Color = ParseColor(CommandKindPalette.Resolve(row.Key));
+        }
+    }
+
+    private void CommitCommandColor(string key, Windows.UI.Color color)
+    {
+        _settings.Current.CommandKindColors[key] = ToHex(color);
+        _ = _settings.SaveAsync();
+    }
+
+    private static Windows.UI.Color ParseColor(string hex)
+    {
+        var value = Convert.ToUInt32(hex.TrimStart('#'), 16);
+        return Windows.UI.Color.FromArgb((byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value);
+    }
+
+    private static string ToHex(Windows.UI.Color color) =>
+        $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
 
     // ---------------------------------------------------------------- Démarrage / zone de notification
 

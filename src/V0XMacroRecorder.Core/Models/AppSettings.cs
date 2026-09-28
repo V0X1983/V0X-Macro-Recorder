@@ -38,6 +38,13 @@ public sealed class AppSettings
     /// <summary>Raccourcis globaux « lancer une macro depuis n'importe où » (étape 6).</summary>
     public List<MacroHotkeyBinding> MacroHotkeys { get; set; } = [];
 
+    /// <summary>
+    /// Couleurs personnalisées par type de commande (clé = <see cref="MacroCommand.Kind"/>), affichées en barre
+    /// verticale à gauche de chaque ligne de la grille. Surcharges uniquement — vide par défaut, voir
+    /// <see cref="CommandKindPalette.Defaults"/> pour les valeurs par défaut.
+    /// </summary>
+    public Dictionary<string, string> CommandKindColors { get; set; } = [];
+
     /// <summary>Lance V0X Macro Recorder à l'ouverture de session (clé HKCU Run, sans droits administrateur).</summary>
     public bool StartWithWindows { get; set; }
 

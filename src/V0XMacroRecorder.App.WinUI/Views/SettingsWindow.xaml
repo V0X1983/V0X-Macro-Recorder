@@ -12,6 +12,7 @@
     <StackPanel Margin="20" MaxWidth="560">
         <StackPanel.Resources>
             <helpers:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+            <helpers:ColorToBrushConverter x:Key="ColorToBrushConverter" />
         </StackPanel.Resources>
 
         <TextBlock Text="Apparence" FontWeight="Bold" Margin="0,0,0,8" />
@@ -98,6 +99,38 @@
         <TextBlock Text="{x:Bind ViewModel.UpdateStatusMessage, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                    Margin="0,8,0,0" TextWrapping="Wrap"
                    Visibility="{Binding UpdateStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
+
+        <TextBlock Text="Couleurs des commandes" FontWeight="Bold" Margin="0,0,0,4" />
+        <TextBlock Text="Barre verticale à gauche de chaque ligne dans la grille, par type de commande." FontSize="12"
+                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" />
+        <ItemsControl ItemsSource="{x:Bind ViewModel.CommandColorRows}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <!-- Binding classique (pas x:Bind) : x:Bind dans un DataTemplate imbriqué échoue à la compilation
+                     quand la racine est une Window plutôt qu'une Page/UserControl (CS1503, conversion impossible
+                     vers FrameworkElement) — piège WinUI 3 propre aux fenêtres secondaires, pas aux pages. -->
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Width="260" Margin="0,0,12,8">
+                        <Button Padding="4" CornerRadius="14">
+                            <Rectangle Width="18" Height="18" RadiusX="9" RadiusY="9" Fill="{Binding Color, Converter={StaticResource ColorToBrushConverter}}" />
+                            <Button.Flyout>
+                                <Flyout>
+                                    <ColorPicker Color="{Binding Color, Mode=TwoWay}" IsAlphaEnabled="False" ColorSpectrumShape="Ring" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Content="Réinitialiser les couleurs" Command="{x:Bind ViewModel.ResetCommandColorsCommand}" Margin="0,4,0,0" />
 
         <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
 

@@ -148,8 +148,9 @@ public partial class MacroDocumentViewModel : ObservableObject
         _logger = logger;
 
         _editor.Changed += (_, _) => Refresh();
-        _editor.CommandAppended += (_, command) => Rows.Add(new CommandRowViewModel(Rows.Count, command));
+        _editor.CommandAppended += (_, command) => Rows.Add(new CommandRowViewModel(Rows.Count, command, _settings.Current.CommandKindColors));
         RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
+        _settings.SettingsChanged += (_, _) => _dispatcher.TryEnqueue(RefreshRowColors);
         RefreshRecentFiles();
 
         _recorder.CommandRecorded += OnCommandRecorded;
@@ -799,7 +800,7 @@ public partial class MacroDocumentViewModel : ObservableObject
     {
         _selection = [];
         var commands = _editor.Commands;
-        var rows = commands.Select((c, i) => new CommandRowViewModel(i, c)).ToList();
+        var rows = commands.Select((c, i) => new CommandRowViewModel(i, c, _settings.Current.CommandKindColors)).ToList();
 
         try
         {
@@ -819,6 +820,16 @@ public partial class MacroDocumentViewModel : ObservableObject
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
         NotifyEditCommands();
+    }
+
+    /// <summary>Réapplique la couleur de chaque ligne sans reconstruire la grille (déclenché par un changement de
+    /// couleur dans Paramètres, voir l'abonnement à <c>ISettingsService.SettingsChanged</c> ci-dessus).</summary>
+    private void RefreshRowColors()
+    {
+        foreach (var row in Rows)
+        {
+            row.UpdateKindColor(_settings.Current.CommandKindColors);
+        }
     }
 
     /// <summary>Une ligne de début de bloc (Si/Boucle) est à la profondeur de ce qui l'entoure ; son corps est à +1 ;

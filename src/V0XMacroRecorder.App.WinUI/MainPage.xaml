@@ -13,10 +13,11 @@
 
     <!--
         Port de MainWindow.xaml (WPF) : le menu/la barre d'outils/la grille de commandes vivent ici plutôt que dans
-        MainWindow.xaml (coquille de fenêtre, voir son commentaire). Styles WPF personnalisés (ToolbarButtonStyle,
-        SideToolButtonStyle, ToggleSwitchStyle, FoldButtonStyle…) volontairement PAS reconstruits en ControlTemplates
-        WinUI 3 pour l'instant (simplification assumée, voir PROMPT.md) : boutons stylés en ligne, aspect non encore
-        peaufiné visuellement (jamais vérifié dans cet environnement, pas d'affichage réel disponible).
+        MainWindow.xaml (coquille de fenêtre, voir son commentaire). Styles WPF personnalisés portés en styles WinUI
+        (ToolbarButtonStyle/SideToolButtonStyle/FoldButtonStyle, voir Resources/Controls.xaml + Resources/Colors.xaml
+        pour la palette de marque) — ToggleSwitchStyle n'a pas d'équivalent ici : remplacé par le contrôle natif
+        ToggleSwitch de WinUI (voir SettingsWindow.xaml), pas besoin de reconstruire la piste/bouton custom de WPF.
+        Menu/ComboBox/ScrollBar/DataGrid restent en Fluent natif (déjà satisfaisant, hors scope de la parité visuelle).
     -->
     <Page.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -115,7 +116,7 @@
         <!-- Barre d'outils : ENREGISTRER, LECTURE, Paramètres. -->
         <Border Grid.Row="1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="6,4">
             <StackPanel Orientation="Horizontal">
-                <Button Command="{x:Bind ViewModel.Document.ToggleRecordingCommand}"
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{x:Bind ViewModel.Document.ToggleRecordingCommand}"
                         ToolTipService.ToolTip="Démarrer/arrêter l'enregistrement (Ctrl+Alt+R)"
                         AutomationProperties.Name="{x:Bind ViewModel.Document.RecordButtonLabel, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal">
@@ -126,17 +127,17 @@
                         <TextBlock Text="{x:Bind ViewModel.Document.RecordButtonLabel, Mode=OneWay}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
-                <Button ToolTipService.ToolTip="Options d'enregistrement" AutomationProperties.Name="Options d'enregistrement" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
+                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="Options d'enregistrement" AutomationProperties.Name="Options d'enregistrement" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
                             <StackPanel MinWidth="300">
                                 <TextBlock Text="Options d'enregistrement" FontWeight="SemiBold" Margin="0,0,0,10" />
 
-                                <CheckBox Content="Souris" IsChecked="{x:Bind ViewModel.RecordingOptions.CaptureMouse, Mode=TwoWay}" Margin="0,0,0,4" />
-                                <CheckBox Content="Clavier" IsChecked="{x:Bind ViewModel.RecordingOptions.CaptureKeyboard, Mode=TwoWay}" Margin="0,0,0,4" />
-                                <CheckBox Content="Enregistrer les délais réels" IsChecked="{x:Bind ViewModel.RecordingOptions.RecordDelays, Mode=TwoWay}" Margin="0,0,0,4" />
-                                <CheckBox Content="Regrouper le texte tapé en une commande" IsChecked="{x:Bind ViewModel.RecordingOptions.RecordTypedTextAsString, Mode=TwoWay}" Margin="0,0,0,4" />
-                                <CheckBox Content="Ne pas enregistrer les champs mot de passe" IsChecked="{x:Bind ViewModel.RecordingOptions.DontRecordPasswordFields, Mode=TwoWay}" Margin="0,0,0,10" />
+                                <ToggleSwitch Header="Souris" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureMouse, Mode=TwoWay}" />
+                                <ToggleSwitch Header="Clavier" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureKeyboard, Mode=TwoWay}" />
+                                <ToggleSwitch Header="Enregistrer les délais réels" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordDelays, Mode=TwoWay}" />
+                                <ToggleSwitch Header="Regrouper le texte tapé en une commande" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordTypedTextAsString, Mode=TwoWay}" />
+                                <ToggleSwitch Header="Ne pas enregistrer les champs mot de passe" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.DontRecordPasswordFields, Mode=TwoWay}" Margin="0,0,0,6" />
 
                                 <TextBlock Text="Échantillonnage souris" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
                                 <ComboBox ItemsSource="{x:Bind vm:RecordingOptionsViewModel.MouseSamplingChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
@@ -154,7 +155,7 @@
                     </Button.Flyout>
                 </Button>
 
-                <Button Command="{x:Bind ViewModel.Document.TogglePlaybackCommand}" Margin="12,0,0,0"
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{x:Bind ViewModel.Document.TogglePlaybackCommand}" Margin="12,0,0,0"
                         ToolTipService.ToolTip="Lire/arrêter la lecture (Ctrl+Alt+S pour l'arrêt d'urgence)"
                         AutomationProperties.Name="{x:Bind ViewModel.Document.PlayButtonLabel, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal">
@@ -168,10 +169,10 @@
                         <TextBlock Text="{x:Bind ViewModel.Document.PlayButtonLabel, Mode=OneWay}" FontSize="15" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
-                <Button Command="{x:Bind ViewModel.Document.TogglePauseCommand}" Content="{x:Bind ViewModel.Document.PauseButtonLabel, Mode=OneWay}" FontWeight="Bold" Margin="4,0,0,0"
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{x:Bind ViewModel.Document.TogglePauseCommand}" Content="{x:Bind ViewModel.Document.PauseButtonLabel, Mode=OneWay}" FontWeight="Bold" Margin="4,0,0,0"
                         Visibility="{x:Bind ViewModel.Document.IsPlaying, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
                         ToolTipService.ToolTip="Mettre en pause / reprendre la lecture" />
-                <Button ToolTipService.ToolTip="Options de lecture" AutomationProperties.Name="Options de lecture" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
+                <Button Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="Options de lecture" AutomationProperties.Name="Options de lecture" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
                             <StackPanel MinWidth="300">
@@ -181,19 +182,19 @@
                                 <Slider Minimum="0.1" Maximum="10" Value="{x:Bind ViewModel.Document.PlaybackOptions.SpeedMultiplier, Mode=TwoWay}" StepFrequency="0.5"
                                         IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" />
 
-                                <CheckBox Content="Sans délai (aussi vite que possible)" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=TwoWay}" Margin="0,4,0,8" />
+                                <ToggleSwitch Header="Sans délai (aussi vite que possible)" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=TwoWay}" Margin="0,4,0,4" />
 
                                 <TextBlock Text="Répétitions" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
                                 <Grid ColumnDefinitions="*,12,Auto">
                                     <NumberBox Grid.Column="0" Value="{x:Bind ViewModel.Document.PlaybackOptions.RepeatCount, Mode=TwoWay}"
                                                IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" SpinButtonPlacementMode="Compact" />
-                                    <CheckBox Grid.Column="2" Content="En boucle" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=TwoWay}" />
+                                    <ToggleSwitch Grid.Column="2" Header="En boucle" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=TwoWay}" />
                                 </Grid>
 
                                 <TextBlock Text="Délai entre répétitions (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
                                 <NumberBox Value="{x:Bind ViewModel.Document.PlaybackOptions.DelayBetweenRepeatsMs, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
 
-                                <CheckBox Content="Lecture pas à pas" IsChecked="{x:Bind ViewModel.Document.PlaybackOptions.StepMode, Mode=TwoWay}" Margin="0,8,0,0" />
+                                <ToggleSwitch Header="Lecture pas à pas" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.StepMode, Mode=TwoWay}" Margin="0,8,0,0" />
 
                                 <TextBlock Text="Fenêtre introuvable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
                                 <ComboBox ItemsSource="{x:Bind vm:PlaybackOptionsViewModel.WindowNotFoundChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
@@ -208,7 +209,7 @@
 
                 <Rectangle Width="1" Margin="8,4,8,4" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
-                <Button Command="{x:Bind ViewModel.OpenSettingsCommand}" ToolTipService.ToolTip="Paramètres">
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{x:Bind ViewModel.OpenSettingsCommand}" ToolTipService.ToolTip="Paramètres">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="20" VerticalAlignment="Center" />
                         <TextBlock Text="Paramètres" FontSize="14" Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -248,7 +249,7 @@
                             <DataTemplate x:DataType="vm:CommandPaletteItem">
                                 <StackPanel>
                                     <Rectangle Height="1" Margin="4,5" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Visibility="{x:Bind StartsGroup, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    <Button Content="{x:Bind Glyph}" FontFamily="Segoe Fluent Icons" Width="40" Height="40" Padding="0"
+                                    <Button Style="{StaticResource SideToolButtonStyle}" Content="{x:Bind Glyph}" FontFamily="Segoe Fluent Icons" Width="40" Height="40" Padding="0"
                                             ToolTipService.ToolTip="{x:Bind Title}" AutomationProperties.Name="{x:Bind Title}"
                                             IsEnabled="{x:Bind IsAvailable}"
                                             Command="{x:Bind Command}" CommandParameter="{x:Bind Key}" />
@@ -278,13 +279,21 @@
                         </MenuFlyout>
                     </controls:DataGrid.ContextFlyout>
                     <controls:DataGrid.Columns>
+                        <!-- Barre verticale colorée par type de commande (couleur personnalisable dans Paramètres). -->
+                        <controls:DataGridTemplateColumn Header="" Width="4" CanUserResize="False" CanUserSort="False">
+                            <controls:DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Rectangle Fill="{Binding KindColorBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                                </DataTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
                         <controls:DataGridTemplateColumn Header="Commande" Width="220">
                             <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="{Binding IndentLevel, Converter={StaticResource IndentLevelToMarginConverter}}">
-                                        <Button Content="{Binding IsCollapsed, Converter={StaticResource FoldGlyphConverter}}"
+                                        <Button Style="{StaticResource FoldButtonStyle}" Content="{Binding IsCollapsed, Converter={StaticResource FoldGlyphConverter}}"
                                                 Visibility="{Binding IsBlockStart, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                Padding="4,0" MinWidth="0" Background="Transparent" BorderThickness="0"
+                                                Padding="4,0" MinWidth="0"
                                                 Click="FoldButton_Click" />
                                         <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="4,0,0,0" />
                                     </StackPanel>
