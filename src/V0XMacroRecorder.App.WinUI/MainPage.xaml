@@ -130,14 +130,36 @@
                 <Button Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="Options d'enregistrement" AutomationProperties.Name="Options d'enregistrement" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
-                            <StackPanel MinWidth="300">
+                            <!-- Largeur fixe (pas seulement MinWidth) : le ScrollViewer implicite du FlyoutPresenter
+                                 offre une largeur non contrainte au contenu pour le mesurer, donc TextWrapping="Wrap"
+                                 ne s'enroule jamais sans une largeur ferme — sans ça, le flyout mesure sa largeur
+                                 naturelle non enroulée et affiche une barre de défilement horizontale inutile. -->
+                            <StackPanel Width="320">
                                 <TextBlock Text="Options d'enregistrement" FontWeight="SemiBold" Margin="0,0,0,10" />
 
-                                <ToggleSwitch Header="Souris" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureMouse, Mode=TwoWay}" />
-                                <ToggleSwitch Header="Clavier" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureKeyboard, Mode=TwoWay}" />
-                                <ToggleSwitch Header="Enregistrer les délais réels" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordDelays, Mode=TwoWay}" />
-                                <ToggleSwitch Header="Regrouper le texte tapé en une commande" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordTypedTextAsString, Mode=TwoWay}" />
-                                <ToggleSwitch Header="Ne pas enregistrer les champs mot de passe" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.DontRecordPasswordFields, Mode=TwoWay}" Margin="0,0,0,6" />
+                                <!-- Libellé à gauche, interrupteur à droite (pas de Header au-dessus : plus compact,
+                                     un ToggleSwitch avec Header empile le texte par-dessus l'interrupteur et agrandit
+                                     inutilement toute la ligne, remarqué par l'utilisateur sur le volet Lecture). -->
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="Souris" VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureMouse, Mode=TwoWay}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="Clavier" VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.CaptureKeyboard, Mode=TwoWay}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="Enregistrer les délais réels" VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordDelays, Mode=TwoWay}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                                    <TextBlock Grid.Column="0" Text="Regrouper le texte tapé en une commande" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.RecordTypedTextAsString, Mode=TwoWay}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                                    <TextBlock Grid.Column="0" Text="Ne pas enregistrer les champs mot de passe" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.RecordingOptions.DontRecordPasswordFields, Mode=TwoWay}" />
+                                </Grid>
 
                                 <TextBlock Text="Échantillonnage souris" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
                                 <ComboBox ItemsSource="{x:Bind vm:RecordingOptionsViewModel.MouseSamplingChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
@@ -175,26 +197,40 @@
                 <Button Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="Options de lecture" AutomationProperties.Name="Options de lecture" Content="&#xE70D;" FontFamily="Segoe Fluent Icons" Margin="2,0,0,0">
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
-                            <StackPanel MinWidth="300">
+                            <!-- Largeur fixe : voir le commentaire équivalent dans le flyout Options d'enregistrement
+                                 ci-dessus (même piège de ScrollViewer implicite du FlyoutPresenter). -->
+                            <StackPanel Width="320">
                                 <TextBlock Text="Options de lecture" FontWeight="SemiBold" Margin="0,0,0,10" />
 
                                 <TextBlock Text="Vitesse" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
                                 <Slider Minimum="0.1" Maximum="10" Value="{x:Bind ViewModel.Document.PlaybackOptions.SpeedMultiplier, Mode=TwoWay}" StepFrequency="0.5"
                                         IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" />
 
-                                <ToggleSwitch Header="Sans délai (aussi vite que possible)" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=TwoWay}" Margin="0,4,0,4" />
+                                <!-- Libellé à gauche, interrupteur à droite (pas de Header : un ToggleSwitch avec
+                                     Header empile le texte au-dessus de l'interrupteur, ce qui agrandissait toute la
+                                     ligne — et donc le NumberBox « Répétitions » juxtaposé, étiré d'autant). -->
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,4">
+                                    <TextBlock Grid.Column="0" Text="Sans délai (aussi vite que possible)" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.NoDelay, Mode=TwoWay}" />
+                                </Grid>
 
                                 <TextBlock Text="Répétitions" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
                                 <Grid ColumnDefinitions="*,12,Auto">
-                                    <NumberBox Grid.Column="0" Value="{x:Bind ViewModel.Document.PlaybackOptions.RepeatCount, Mode=TwoWay}"
+                                    <NumberBox Grid.Column="0" VerticalAlignment="Top" Value="{x:Bind ViewModel.Document.PlaybackOptions.RepeatCount, Mode=TwoWay}"
                                                IsEnabled="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=OneWay, Converter={StaticResource InverseBooleanConverter}}" SpinButtonPlacementMode="Compact" />
-                                    <ToggleSwitch Grid.Column="2" Header="En boucle" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=TwoWay}" />
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="En boucle" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <ToggleSwitch OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.InfiniteLoop, Mode=TwoWay}" />
+                                    </StackPanel>
                                 </Grid>
 
                                 <TextBlock Text="Délai entre répétitions (ms)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
                                 <NumberBox Value="{x:Bind ViewModel.Document.PlaybackOptions.DelayBetweenRepeatsMs, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
 
-                                <ToggleSwitch Header="Lecture pas à pas" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.StepMode, Mode=TwoWay}" Margin="0,8,0,0" />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                                    <TextBlock Grid.Column="0" Text="Lecture pas à pas" VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="1" OnContent="" OffContent="" IsOn="{x:Bind ViewModel.Document.PlaybackOptions.StepMode, Mode=TwoWay}" />
+                                </Grid>
 
                                 <TextBlock Text="Fenêtre introuvable" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,4" />
                                 <ComboBox ItemsSource="{x:Bind vm:PlaybackOptionsViewModel.WindowNotFoundChoices}" ItemTemplate="{StaticResource ChoiceItemTemplate}"
@@ -242,9 +278,11 @@
 
         <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
             <!-- Barre verticale d'icônes : un bouton par type de commande. -->
-            <Border Grid.Column="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,1,0" Padding="4,6">
+            <Border Grid.Column="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,1,0" Padding="4,6,0,6">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{x:Bind ViewModel.CommandPalette}">
+                    <!-- Marge droite sur les icônes (pas sur le ScrollViewer) : la barre de défilement reste collée
+                         au bord droit du panneau, seules les icônes de 40px sont décalées pour ne pas s'y coller. -->
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.CommandPalette}" Margin="0,0,12,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:CommandPaletteItem">
                                 <StackPanel>

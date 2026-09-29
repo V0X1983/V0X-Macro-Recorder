@@ -21,6 +21,12 @@ public sealed partial class CommandEditorWindow : Window
         RootGrid.DataContext = viewModel;
         RootGrid.KeyDown += OnRootKeyDown;
         WindowSizing.Set(this, 480, 640);
+
+        // Fermer avec la croix (X)/Alt+F4 au lieu d'OK/Annuler ne passe jamais par Complete() : sans ce filet,
+        // _completion ne se termine jamais, et comme InsertCommand/InsertBlockCommand (icônes de la palette + menu
+        // Insérer, toutes liées à cette même commande async) attend indéfiniment ce résultat, CommunityToolkit.Mvvm
+        // les garde désactivées pour toujours (bug réel signalé par l'utilisateur : icônes grisées en permanence).
+        Closed += (_, _) => _completion.TrySetResult(false);
     }
 
     /// <summary>Affiche la fenêtre et attend sa fermeture (OK ou Annuler).</summary>
