@@ -422,8 +422,6 @@ public partial class MainWindowViewModel : ObservableObject
     /// Lance l'installeur en silencieux (avec élévation UAC seulement si nécessaire, voir <c>PrivilegesRequiredOverridesAllowed</c>
     /// dans <c>installer\V0XMacroRecorder.iss</c>) puis relance l'application, dans un PowerShell indépendant qui survit
     /// à la fermeture de V0X Macro Recorder. Si l'élévation est refusée, l'application se relance quand même, sans mise à jour.
-    /// TODO Phase 4 packaging : ce flux entier (télécharger+lancer un installeur Inno Setup) est incompatible avec un
-    /// paquet MSIX — à remplacer par le flux .appinstaller natif (voir plan de migration).
     /// </summary>
     private static void LaunchInstallerAndRestart(string installerPath)
     {

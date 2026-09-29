@@ -31,7 +31,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog commandline
 WizardStyle=modern
-SetupIconFile=..\src\V0XMacroRecorder.App\Resources\app.ico
+SetupIconFile=..\src\V0XMacroRecorder.App.WinUI\Assets\AppIcon.ico
 
 [Languages]
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"

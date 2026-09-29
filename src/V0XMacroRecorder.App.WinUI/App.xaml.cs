@@ -73,8 +73,9 @@ public partial class App : Application
 
         // Ligne de commande --play "chemin.v0xmacro" [--silent] [--repeat N] (typiquement une tâche planifiée).
         // Repris tel quel de l'ancienne app WPF : Environment.GetCommandLineArgs() fonctionne à l'identique en
-        // WinUI 3/Windows App SDK pour un lancement normal ou en debug packagé (l'activation par association de
-        // fichier .v0xmacro via le manifeste MSIX est traitée séparément en Phase 4 packaging).
+        // WinUI 3/Windows App SDK pour un lancement normal ou en debug packagé. Association de fichier .v0xmacro
+        // (double-clic dans l'Explorateur) pas encore faite : app non empaquetée (pas de manifeste MSIX), nécessiterait
+        // une clé de registre HKCU comme un exe Win32 classique — non fait, non demandé pour l'instant.
         var commandLineArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
         var playRequest = CommandLineArgs.ParsePlay(commandLineArgs);
         if (playRequest is { Silent: true })

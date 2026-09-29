@@ -10,7 +10,9 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $root 'artifacts'
 $publish = Join-Path $out 'publish'
-$project = Join-Path $root 'src\V0XMacroRecorder.App\V0XMacroRecorder.App.csproj'
+# Phase 2 (voir PROMPT.md) : publie désormais l'app WinUI 3 (déploiement non empaqueté,
+# WindowsPackageType=None) plutôt que l'app WPF, en vue de son retrait (Phase 3).
+$project = Join-Path $root 'src\V0XMacroRecorder.App.WinUI\V0XMacroRecorder.App.WinUI.csproj'
 
 $version = ([xml](Get-Content $project)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
 

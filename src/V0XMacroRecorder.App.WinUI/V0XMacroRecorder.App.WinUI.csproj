@@ -4,6 +4,9 @@
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>V0XMacroRecorder.App</RootNamespace>
+    <!-- installer/V0XMacroRecorder.iss référence "V0XMacroRecorder.exe" (nom de sortie historique de l'app WPF) :
+         renommé ici plutôt que de toucher au script Inno Setup, pour publier exactement ce nom d'exe. -->
+    <AssemblyName>V0XMacroRecorder</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon Condition="Exists('Assets\AppIcon.ico')">Assets\AppIcon.ico</ApplicationIcon>
     <Platforms>x86;x64;ARM64</Platforms>
@@ -14,6 +17,9 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Même version que l'app WPF (installer/build.ps1 publie désormais ce projet) : lue par MainWindowViewModel
+         (réflexion sur l'assembly) pour comparer à la dernière version publiée sur GitHub Releases. -->
+    <Version>0.1.0</Version>
     <!--
       Phase 2 (voir PROMPT.md) : déploiement non empaqueté plutôt qu'un vrai paquet MSIX, pour réutiliser
       l'installeur Inno Setup existant (décision utilisateur du 2026-09-28). Le Windows App SDK est alors
@@ -97,7 +103,14 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!--
+      PublishTrimmed désactivé (gabarit MSIX par défaut, pertinent seulement pour réduire la taille d'un paquet Store).
+      Vérifié réellement (installer\build.ps1, publish -c Release) : activé, il désactive automatiquement la
+      sérialisation JSON par réflexion de System.Text.Json (InvalidOperationException:
+      JsonSerializerIsReflectionDisabled au premier lancement, SettingsService.Load) puisque AppSettings n'a pas de
+      JsonSerializerContext généré à la compilation — WPF/V0X Cleaner n'ont jamais eu ce problème car ils ne rognent
+      pas non plus.
+    -->
+    <PublishTrimmed>False</PublishTrimmed>
   </PropertyGroup>
 </Project>
