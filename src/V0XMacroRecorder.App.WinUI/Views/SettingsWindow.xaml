@@ -8,141 +8,158 @@
     xmlns:helpers="using:V0XMacroRecorder.App.Helpers"
     mc:Ignorable="d">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-    <StackPanel Margin="20" MaxWidth="560">
-        <StackPanel.Resources>
+    <Grid Margin="12,12,20,12" RowDefinitions="*,Auto">
+        <Grid.Resources>
             <helpers:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
             <helpers:ColorToBrushConverter x:Key="ColorToBrushConverter" />
-        </StackPanel.Resources>
+        </Grid.Resources>
 
-        <TextBlock Text="Apparence" FontWeight="Bold" Margin="0,0,0,8" />
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-            <RadioButton Content="Sombre" GroupName="Theme" Margin="0,0,16,0"
-                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="Dark" IsChecked="{x:Bind ViewModel.IsDarkTheme, Mode=OneWay}" />
-            <RadioButton Content="Clair" GroupName="Theme" Margin="0,0,16,0"
-                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="Light" IsChecked="{x:Bind ViewModel.IsLightTheme, Mode=OneWay}" />
-            <RadioButton Content="Système" GroupName="Theme"
-                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="System" IsChecked="{x:Bind ViewModel.IsSystemTheme, Mode=OneWay}" />
-        </StackPanel>
-        <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*">
-            <TextBlock Grid.Column="0" Text="Langue" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0" Width="160" HorizontalAlignment="Left">
-                <ComboBoxItem Content="Français" />
-            </ComboBox>
-        </Grid>
-        <TextBlock Text="Multi-langue prévu pour une version future." FontSize="11" Opacity="0.7" Margin="0,2,0,0" />
+        <!--
+            Catégories empilées verticalement (NavigationView), pas des onglets horizontaux (Pivot, essayé d'abord) :
+            avec 7 catégories, un Pivot force toute la fenêtre à être aussi large que la somme de tous les libellés
+            d'en-tête pour éviter ses flèches de défilement qui les chevauchent sinon (piège rencontré et signalé par
+            l'utilisateur) — une liste verticale n'a pas ce problème, la fenêtre peut retrouver une taille normale.
+        -->
+        <NavigationView Grid.Row="0" IsSettingsVisible="False" IsBackButtonVisible="Collapsed" IsPaneToggleButtonVisible="False"
+                        PaneDisplayMode="Left" OpenPaneLength="180" SelectionChanged="Nav_SelectionChanged">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Apparence" Tag="Apparence" IsSelected="True" />
+                <NavigationViewItem Content="Raccourcis" Tag="Raccourcis" />
+                <NavigationViewItem Content="Lecture" Tag="Lecture" />
+                <NavigationViewItem Content="Dossier" Tag="Dossier" />
+                <NavigationViewItem Content="Mise à jour" Tag="MiseAJour" />
+                <NavigationViewItem Content="Couleurs" Tag="Couleurs" />
+                <NavigationViewItem Content="Démarrage" Tag="Demarrage" />
+            </NavigationView.MenuItems>
 
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
-
-        <TextBlock Text="Raccourcis globaux" FontWeight="Bold" Margin="0,0,0,8" />
-
-        <TextBlock Text="Enregistrer / arrêter l'enregistrement" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-            <CheckBox Content="Ctrl" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyCtrl, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Alt" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyAlt, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Maj" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyShift, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Win" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyWin, Mode=TwoWay}" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-            <TextBox x:Name="RecordHotkeyCaptureBox" Tag="RecordHotkeyCapture" IsReadOnly="True"
-                     Text="{x:Bind ViewModel.RecordingOptions.HotKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
-            <Button Content="Appliquer" Command="{x:Bind ViewModel.ApplyRecordingHotkeyCommand}" />
-        </StackPanel>
-        <TextBlock Text="{x:Bind ViewModel.RecordHotkeyStatusMessage, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCautionBrush}" Margin="0,4,0,0" TextWrapping="Wrap"
-                   Visibility="{Binding RecordHotkeyStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-
-        <TextBlock Text="Arrêt d'urgence pendant la lecture" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,14,0,0" />
-        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-            <CheckBox Content="Ctrl" IsChecked="{x:Bind ViewModel.EmergencyStopCtrl, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Alt" IsChecked="{x:Bind ViewModel.EmergencyStopAlt, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Maj" IsChecked="{x:Bind ViewModel.EmergencyStopShift, Mode=TwoWay}" Margin="0,0,10,0" />
-            <CheckBox Content="Win" IsChecked="{x:Bind ViewModel.EmergencyStopWin, Mode=TwoWay}" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-            <TextBox x:Name="EmergencyStopHotkeyCaptureBox" Tag="EmergencyStopHotkeyCapture" IsReadOnly="True"
-                     Text="{x:Bind ViewModel.EmergencyStopKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
-            <Button Content="Appliquer" Command="{x:Bind ViewModel.ApplyEmergencyStopHotkeyCommand}" />
-        </StackPanel>
-        <TextBlock Text="{x:Bind ViewModel.EmergencyStopStatusMessage, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCautionBrush}" Margin="0,4,0,0" TextWrapping="Wrap"
-                   Visibility="{Binding EmergencyStopStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
-
-        <TextBlock Text="Lecture" FontWeight="Bold" Margin="0,0,0,8" />
-        <CheckBox Content="Réduire la fenêtre pendant la lecture" IsChecked="{x:Bind ViewModel.MinimizeWindowOnPlay, Mode=TwoWay}" Margin="0,0,0,6" />
-        <CheckBox Content="Jouer un son à la fin d'une lecture" IsChecked="{x:Bind ViewModel.PlayEndOfMacroSound, Mode=TwoWay}" />
-
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
-
-        <TextBlock Text="Dossier des macros par défaut" FontWeight="Bold" Margin="0,0,0,8" />
-        <Grid ColumnDefinitions="*,Auto">
-            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.DefaultMacrosFolder, Mode=OneWay}" IsReadOnly="True" />
-            <Button Grid.Column="1" Content="Parcourir…" Command="{x:Bind ViewModel.BrowseMacrosFolderCommand}" Margin="6,0,0,0" />
-        </Grid>
-
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
-
-        <TextBlock Text="Mise à jour" FontWeight="Bold" Margin="0,0,0,8" />
-        <TextBlock Text="Dépôt GitHub Releases vérifié (propriétaire / dépôt) :" FontSize="12"
-                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
-        <Grid Margin="0,0,0,8" ColumnDefinitions="*,*">
-            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.UpdateCheckOwner, Mode=TwoWay}"
-                     PlaceholderText="propriétaire" Margin="0,0,6,0" Padding="6,4" />
-            <TextBox Grid.Column="1" Text="{x:Bind ViewModel.UpdateCheckRepo, Mode=TwoWay}"
-                     PlaceholderText="dépôt" Margin="6,0,0,0" Padding="6,4" />
-        </Grid>
-        <StackPanel Orientation="Horizontal">
-            <Button Content="Vérifier maintenant" Command="{x:Bind ViewModel.CheckForUpdatesCommand}" Padding="12,6" Margin="0,0,10,0" />
-            <Button Content="Ouvrir la version" Click="OpenReleaseButton_Click" Padding="12,6"
-                    Visibility="{Binding LatestReleaseUrl, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-        </StackPanel>
-        <TextBlock Text="{x:Bind ViewModel.UpdateStatusMessage, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                   Margin="0,8,0,0" TextWrapping="Wrap"
-                   Visibility="{Binding UpdateStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
-
-        <TextBlock Text="Couleurs des commandes" FontWeight="Bold" Margin="0,0,0,4" />
-        <TextBlock Text="Barre verticale à gauche de chaque ligne dans la grille, par type de commande." FontSize="12"
-                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" />
-        <ItemsControl ItemsSource="{x:Bind ViewModel.CommandColorRows}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <!-- Binding classique (pas x:Bind) : x:Bind dans un DataTemplate imbriqué échoue à la compilation
-                     quand la racine est une Window plutôt qu'une Page/UserControl (CS1503, conversion impossible
-                     vers FrameworkElement) — piège WinUI 3 propre aux fenêtres secondaires, pas aux pages. -->
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Width="260" Margin="0,0,12,8">
-                        <Button Padding="4" CornerRadius="14">
-                            <Rectangle Width="18" Height="18" RadiusX="9" RadiusY="9" Fill="{Binding Color, Converter={StaticResource ColorToBrushConverter}}" />
-                            <Button.Flyout>
-                                <Flyout>
-                                    <ColorPicker Color="{Binding Color, Mode=TwoWay}" IsAlphaEnabled="False" ColorSpectrumShape="Ring" />
-                                </Flyout>
-                            </Button.Flyout>
-                        </Button>
-                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="16,0,0,0">
+                <Grid>
+                    <StackPanel x:Name="ApparencePanel">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <RadioButton Content="Sombre" GroupName="Theme" Margin="0,0,16,0"
+                                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="Dark" IsChecked="{x:Bind ViewModel.IsDarkTheme, Mode=OneWay}" />
+                            <RadioButton Content="Clair" GroupName="Theme" Margin="0,0,16,0"
+                                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="Light" IsChecked="{x:Bind ViewModel.IsLightTheme, Mode=OneWay}" />
+                            <RadioButton Content="Système" GroupName="Theme"
+                                         Command="{x:Bind ViewModel.SetThemeCommand}" CommandParameter="System" IsChecked="{x:Bind ViewModel.IsSystemTheme, Mode=OneWay}" />
+                        </StackPanel>
+                        <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="Langue" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ComboBox Grid.Column="1" IsEnabled="False" SelectedIndex="0" Width="160" HorizontalAlignment="Left">
+                                <ComboBoxItem Content="Français" />
+                            </ComboBox>
+                        </Grid>
+                        <TextBlock Text="Multi-langue prévu pour une version future." FontSize="11" Opacity="0.7" Margin="0,2,0,0" />
                     </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <Button Content="Réinitialiser les couleurs" Command="{x:Bind ViewModel.ResetCommandColorsCommand}" Margin="0,4,0,0" />
 
-        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,16,0,16" />
+                    <StackPanel x:Name="RaccourcisPanel" Visibility="Collapsed">
+                        <TextBlock Text="Enregistrer / arrêter l'enregistrement" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox Content="Ctrl" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyCtrl, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Alt" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyAlt, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Maj" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyShift, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Win" IsChecked="{x:Bind ViewModel.RecordingOptions.HotKeyWin, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBox x:Name="RecordHotkeyCaptureBox" Tag="RecordHotkeyCapture" IsReadOnly="True"
+                                     Text="{x:Bind ViewModel.RecordingOptions.HotKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
+                            <Button Content="Appliquer" Command="{x:Bind ViewModel.ApplyRecordingHotkeyCommand}" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.RecordHotkeyStatusMessage, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCautionBrush}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding RecordHotkeyStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
 
-        <TextBlock Text="Démarrage" FontWeight="Bold" Margin="0,0,0,8" />
-        <CheckBox Content="Démarrer avec Windows" IsChecked="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" Margin="0,0,0,6" />
-        <CheckBox Content="Démarrer réduit dans la zone de notification" IsChecked="{x:Bind ViewModel.StartMinimizedToTray, Mode=TwoWay}"
-                  IsEnabled="{x:Bind ViewModel.ShowsStartMinimizedOption, Mode=OneWay}" Margin="20,0,0,6" />
-        <CheckBox Content="Réduire dans la zone de notification en fermant la fenêtre" IsChecked="{x:Bind ViewModel.MinimizeToTrayOnClose, Mode=TwoWay}" />
+                        <TextBlock Text="Arrêt d'urgence pendant la lecture" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,14,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox Content="Ctrl" IsChecked="{x:Bind ViewModel.EmergencyStopCtrl, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Alt" IsChecked="{x:Bind ViewModel.EmergencyStopAlt, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Maj" IsChecked="{x:Bind ViewModel.EmergencyStopShift, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <CheckBox Content="Win" IsChecked="{x:Bind ViewModel.EmergencyStopWin, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBox x:Name="EmergencyStopHotkeyCaptureBox" Tag="EmergencyStopHotkeyCapture" IsReadOnly="True"
+                                     Text="{x:Bind ViewModel.EmergencyStopKeyLabel, Mode=OneWay}" FontWeight="SemiBold" MinWidth="180" Margin="0,0,8,0" />
+                            <Button Content="Appliquer" Command="{x:Bind ViewModel.ApplyEmergencyStopHotkeyCommand}" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.EmergencyStopStatusMessage, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCautionBrush}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding EmergencyStopStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    </StackPanel>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <StackPanel x:Name="LecturePanel" Visibility="Collapsed">
+                        <CheckBox Content="Réduire la fenêtre pendant la lecture" IsChecked="{x:Bind ViewModel.MinimizeWindowOnPlay, Mode=TwoWay}" Margin="0,0,0,6" />
+                        <CheckBox Content="Jouer un son à la fin d'une lecture" IsChecked="{x:Bind ViewModel.PlayEndOfMacroSound, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="DossierPanel" Visibility="Collapsed">
+                        <TextBlock Text="Dossier des macros par défaut" FontWeight="Bold" Margin="0,0,0,8" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.DefaultMacrosFolder, Mode=OneWay}" IsReadOnly="True" />
+                            <Button Grid.Column="1" Content="Parcourir…" Command="{x:Bind ViewModel.BrowseMacrosFolderCommand}" Margin="6,0,0,0" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel x:Name="MiseAJourPanel" Visibility="Collapsed">
+                        <TextBlock Text="Dépôt GitHub Releases vérifié (propriétaire / dépôt) :" FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4" />
+                        <Grid Margin="0,0,0,8" ColumnDefinitions="*,*" MaxWidth="480">
+                            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.UpdateCheckOwner, Mode=TwoWay}"
+                                     PlaceholderText="propriétaire" Margin="0,0,6,0" Padding="6,4" />
+                            <TextBox Grid.Column="1" Text="{x:Bind ViewModel.UpdateCheckRepo, Mode=TwoWay}"
+                                     PlaceholderText="dépôt" Margin="6,0,0,0" Padding="6,4" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Vérifier maintenant" Command="{x:Bind ViewModel.CheckForUpdatesCommand}" Padding="12,6" Margin="0,0,10,0" />
+                            <Button Content="Ouvrir la version" Click="OpenReleaseButton_Click" Padding="12,6"
+                                    Visibility="{Binding LatestReleaseUrl, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind ViewModel.UpdateStatusMessage, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="480"
+                                   Visibility="{Binding UpdateStatusMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="CouleursPanel" Visibility="Collapsed">
+                        <TextBlock Text="Barre verticale à gauche de chaque ligne dans la grille, par type de commande." FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.CommandColorRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <!-- Binding classique (pas x:Bind) : x:Bind dans un DataTemplate imbriqué échoue à la
+                                     compilation quand la racine est une Window plutôt qu'une Page/UserControl
+                                     (CS1503, conversion impossible vers FrameworkElement) — piège WinUI 3 propre aux
+                                     fenêtres secondaires, pas aux pages. -->
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Width="260" Margin="0,0,12,8">
+                                        <Button Padding="4" CornerRadius="14">
+                                            <Rectangle Width="18" Height="18" RadiusX="9" RadiusY="9" Fill="{Binding Color, Converter={StaticResource ColorToBrushConverter}}" />
+                                            <Button.Flyout>
+                                                <Flyout>
+                                                    <ColorPicker Color="{Binding Color, Mode=TwoWay}" IsAlphaEnabled="False" ColorSpectrumShape="Ring" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Content="Réinitialiser les couleurs" Command="{x:Bind ViewModel.ResetCommandColorsCommand}" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="DemarragePanel" Visibility="Collapsed">
+                        <CheckBox Content="Démarrer avec Windows" IsChecked="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" Margin="0,0,0,6" />
+                        <CheckBox Content="Démarrer réduit dans la zone de notification" IsChecked="{x:Bind ViewModel.StartMinimizedToTray, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.ShowsStartMinimizedOption, Mode=OneWay}" Margin="20,0,0,6" />
+                        <CheckBox Content="Réduire dans la zone de notification en fermant la fenêtre" IsChecked="{x:Bind ViewModel.MinimizeToTrayOnClose, Mode=TwoWay}" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </NavigationView>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,8,0">
             <Button Content="Fermer" MinWidth="90" Style="{StaticResource AccentButtonStyle}" Click="CloseButton_Click" />
         </StackPanel>
-    </StackPanel>
-    </ScrollViewer>
+    </Grid>
 </Window>

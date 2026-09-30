@@ -25,7 +25,10 @@ public sealed partial class SettingsWindow : Window
             // (SetConverterLookupRoot attend une FrameworkElement) — ces 4 bindings restent donc en classique.
             root.DataContext = viewModel;
             root.KeyDown += OnRootKeyDown;
-            WindowSizing.Set(this, 580, 700);
+            // Le panneau de navigation (180px) mange de la largeur de contenu par rapport à l'ancienne disposition
+            // à une seule colonne : élargi pour que la ligne de cases Ctrl/Alt/Maj/Win (Raccourcis) ne déborde plus
+            // (« Win » coupé au bord droit, signalé par l'utilisateur).
+            WindowSizing.Set(this, 840, 640);
         }
     }
 
@@ -47,6 +50,34 @@ public sealed partial class SettingsWindow : Window
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>Bascule le panneau visible selon la catégorie choisie dans le NavigationView (un seul StackPanel
+    /// visible à la fois, tous empilés dans la même cellule de Grid).</summary>
+    private void Nav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (args.SelectedItemContainer is not NavigationViewItem { Tag: string tag })
+        {
+            return;
+        }
+
+        foreach (var panel in new[] { ApparencePanel, RaccourcisPanel, LecturePanel, DossierPanel, MiseAJourPanel, CouleursPanel, DemarragePanel })
+        {
+            panel.Visibility = Visibility.Collapsed;
+        }
+
+        var selected = tag switch
+        {
+            "Apparence" => ApparencePanel,
+            "Raccourcis" => RaccourcisPanel,
+            "Lecture" => LecturePanel,
+            "Dossier" => DossierPanel,
+            "MiseAJour" => MiseAJourPanel,
+            "Couleurs" => CouleursPanel,
+            "Demarrage" => DemarragePanel,
+            _ => ApparencePanel,
+        };
+        selected.Visibility = Visibility.Visible;
+    }
 
     /// <summary>
     /// Champs de capture de raccourci : même patron que <c>CommandEditorWindow</c>/<c>MacroHotkeysWindow</c>.
