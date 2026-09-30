@@ -11,7 +11,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $root 'artifacts'
 $publish = Join-Path $out 'publish'
 # Phase 2 (voir PROMPT.md) : publie désormais l'app WinUI 3 (déploiement non empaqueté,
-# WindowsPackageType=None) plutôt que l'app WPF, en vue de son retrait (Phase 3).
+# WindowsPackageType=None) (l'ancienne app WPF a été retirée en Phase 3).
 $project = Join-Path $root 'src\V0XMacroRecorder.App.WinUI\V0XMacroRecorder.App.WinUI.csproj'
 
 $version = ([xml](Get-Content $project)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1

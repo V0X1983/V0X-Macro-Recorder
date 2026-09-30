@@ -1,6 +1,6 @@
 # V0X Macro Recorder
 
-Enregistreur et lecteur de macros (souris, clavier, fenêtres, images) pour Windows 11, en **C# / .NET 8 / WPF**. Même stack, même style et même chaîne de distribution que V0X Cleaner.
+Enregistreur et lecteur de macros (souris, clavier, fenêtres, images) pour Windows 11, en **C# / .NET 10 / WinUI 3**. Même stack, même style et même chaîne de distribution que V0X Cleaner.
 
 ## Fonctionnalités
 
@@ -40,7 +40,7 @@ V0X Macro Recorder simule des entrées clavier/souris réelles (Win32 `SendInput
 ```powershell
 dotnet build V0XMacroRecorder.sln
 dotnet test V0XMacroRecorder.sln --no-build
-dotnet run --project src/V0XMacroRecorder.App
+dotnet run --project src/V0XMacroRecorder.App.WinUI
 ```
 
 Packaging (publish self-contained, archive portable, installeur Inno Setup si disponible) :
@@ -49,7 +49,7 @@ Packaging (publish self-contained, archive portable, installeur Inno Setup si di
 powershell -ExecutionPolicy Bypass -File installer\build.ps1
 ```
 
-Structure : `src/V0XMacroRecorder.Core` (modèles, moteur), `src/V0XMacroRecorder.Services` (Win32, stockage, mise à jour), `src/V0XMacroRecorder.App` (WPF), `tests/V0XMacroRecorder.Tests` (xUnit), `installer/` (Inno Setup).
+Structure : `src/V0XMacroRecorder.Core` (modèles, moteur), `src/V0XMacroRecorder.Services` (Win32, stockage, mise à jour), `src/V0XMacroRecorder.App.WinUI` (WinUI 3), `tests/V0XMacroRecorder.Tests` (xUnit), `installer/` (Inno Setup).
 
 Données utilisateur : `%AppData%\V0XMacroRecorder` (config.json, logs).
 
