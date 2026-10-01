@@ -20,7 +20,7 @@
     <!-- Lue par MainWindowViewModel (réflexion sur l'assembly) pour comparer à la dernière version publiée sur
          GitHub Releases. Bump 0.1.0 -> 0.1.1 (Phase 3, voir PROMPT.md) : pour tester réellement la mise à jour
          automatique avec le nouvel exe non empaqueté avant de retirer le filet de sécurité WPF. -->
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <!--
       Phase 2 (voir PROMPT.md) : déploiement non empaqueté plutôt qu'un vrai paquet MSIX, pour réutiliser
       l'installeur Inno Setup existant (décision utilisateur du 2026-09-28). Le Windows App SDK est alors

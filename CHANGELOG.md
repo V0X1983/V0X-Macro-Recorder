@@ -1,6 +1,8 @@
 # Changelog
 
-## Non publié
+## 0.2.0 — 2026-09-30
+
+- Nouveau : l'application est désormais en WinUI 3 (.NET 10), non empaquetée, et l'ancienne version WPF est retirée. Nouveau style visuel, couleur personnalisable par type de commande, Paramètres organisés en catégories.
 
 - Correctif : le champ « Étiquette cible » de l'éditeur Aller à l'étiquette n'affichait jamais les étiquettes déjà posées dans la macro, ni ne permettait de taper un nom — le style `ComboBox` personnalisé (partagé par tout le reste de l'app) n'a d'usage éditable nulle part ailleurs, et son template ne définissait ni `PART_EditableTextBox` ni `PART_Popup` (noms exacts exigés par WPF pour qu'un `ComboBox IsEditable="True"` fonctionne et génère correctement sa liste), ni de colonne séparée pour la flèche (le champ de texte ajouté recouvrait toute la largeur, y compris la flèche, qui ne réagissait plus au clic). Les trois corrigés (parties nommées + colonnes séparées texte/flèche), activés uniquement quand `IsEditable="True"` (aucun changement pour les nombreux ComboBox non éditables du reste de l'app). Le texte des éléments de la liste restait par ailleurs invisible (élément présent et cliquable, mais sans texte visible) malgré le style `ComboBoxItem` partagé qui fonctionne partout ailleurs — contourné en forçant explicitement la couleur du texte via un `ItemTemplate` dédié à ce ComboBox plutôt qu'en dépendant de l'héritage ambiant de `Foreground`.
 - Ajout : bouton « Tester » dans l'éditeur Recherche d'image (recherche réelle sans jamais cliquer), aperçu visuel du modèle capturé, et option « Double-clic » pour cliquer deux fois sur l'image trouvée (nécessaire pour lancer une icône).
